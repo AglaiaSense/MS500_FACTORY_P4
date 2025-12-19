@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+.idea/
+model/person_alerm/output/
+model/person_alerm/temp/
+*.csv
+temp/
+.claude/
