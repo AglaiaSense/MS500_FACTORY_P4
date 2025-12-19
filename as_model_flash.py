@@ -45,8 +45,14 @@ from esp_components import (
     get_esptool,
 )
 
-# 导入 as_nvs_tool 模块
-import as_nvs_tool
+# 导入 as_nvs 模块
+from as_nvs import (
+    init_temp_dir as nvs_init_temp_dir,
+    get_nvs_raw_bin_path,
+    check_nvs_data,
+    generate_nvs_data,
+    get_nvs_bin_path,
+)
 
 # 导入 as_model_auth 模块（需要添加到路径）
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "model"))
@@ -119,7 +125,7 @@ def read_device_id_from_nvs(port):
     try:
         # 步骤 1.1: 从设备读取 NVS 原始数据
         print("\nReading NVS partition from device...")
-        nvs_raw_bin = as_nvs_tool.get_nvs_raw_bin_path()
+        nvs_raw_bin = get_nvs_raw_bin_path()
 
         cmd = [ESPTOOL, "--port", port, "read_flash", NVS_OFFSET, NVS_SIZE, nvs_raw_bin]
         print(f"Execute command: {' '.join(cmd)}")
@@ -136,7 +142,7 @@ def read_device_id_from_nvs(port):
 
         # 步骤 1.2: 解码 NVS 数据
         print("\nDecoding NVS data...")
-        nvs_info = as_nvs_tool.check_nvs_data()
+        nvs_info = check_nvs_data()
 
         if not nvs_info or not nvs_info.get("decoded"):
             print("\nError: Cannot decode NVS data")
@@ -377,7 +383,7 @@ def update_nvs_with_model_flag():
     try:
         # 读取现有的 NVS 数据
         print("\nReading existing NVS data...")
-        nvs_info = as_nvs_tool.check_nvs_data()
+        nvs_info = check_nvs_data()
 
         if not nvs_info or not nvs_info.get("decoded"):
             print("\nError: Cannot decode NVS data")
@@ -395,10 +401,10 @@ def update_nvs_with_model_flag():
 
         # 生成新的 NVS bin 文件
         print("\nGenerating new NVS bin file...")
-        as_nvs_tool.generate_nvs_data(info)
+        generate_nvs_data(info)
 
         # 获取生成的 NVS bin 文件路径
-        nvs_bin_path = as_nvs_tool.get_nvs_bin_path()
+        nvs_bin_path = get_nvs_bin_path()
 
         if not os.path.exists(nvs_bin_path):
             print(f"\nError: NVS bin file not found: {nvs_bin_path}")
@@ -508,7 +514,7 @@ def main():
 
     try:
         # 初始化临时目录
-        as_nvs_tool.init_temp_dir()
+        nvs_init_temp_dir()
         init_temp_dir()
 
         # 步骤1: 从 NVS 读取 device_id (u_camera_id)

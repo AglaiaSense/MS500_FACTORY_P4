@@ -7,7 +7,13 @@ import time
 from esp_components import get_esptool
 
 # 导入 NVS 工具模块
-import as_nvs_tool
+from as_nvs import (
+    read_flash_and_mac,
+    check_nvs_data,
+    generate_nvs_data,
+    flash_nvs,
+    init_temp_dir,
+)
 
 # ========== 配置区 ==========
 # 使用 esp_components 提供的 esptool 路径
@@ -99,70 +105,7 @@ def test_read_mac(port):
 
 
 #------------------ 步骤1：读取 MAC 和 NVS 数据 ------------------
-
-def read_flash_and_mac(port):
-    """
-    从设备读取 NVS 分区数据并获取 MAC 地址
-    """
-    print("=" * 60)
-    print("步骤1: 连接设备并读取 Flash NVS 分区数据")
-    print("=" * 60)
-
-    # 初始化临时目录
-    as_nvs_tool.init_temp_dir()
-
-    # 获取 NVS 原始 BIN 文件路径
-    nvs_raw_bin = as_nvs_tool.get_nvs_raw_bin_path()
-
-    cmd = [ESPTOOL, "--port", port, "read_flash", NVS_OFFSET, NVS_SIZE, nvs_raw_bin]
-    print(f"执行命令: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    # 检查是否成功
-    if result.returncode != 0:
-        print("\n" + "!" * 60)
-        print("错误: 无法连接到设备或读取 Flash")
-        print("!" * 60)
-        print("\n请检查:")
-        print("  1. 设备是否正确连接到 " + port)
-        print("  2. COM 端口号是否正确")
-        print("  3. 设备是否处于下载模式（Bootloader）")
-        print("  4. 串口是否被其他程序占用")
-
-        # 打印详细错误信息
-        print("\n" + "-" * 60)
-        print("详细错误信息:")
-        print("-" * 60)
-
-        # 打印标准输出（如果有）
-        if result.stdout.strip():
-            print(result.stdout)
-
-        # 打印标准错误输出（通常包含错误详情）
-        if result.stderr.strip():
-            print(result.stderr)
-        else:
-            print("（无错误详情）")
-
-        print("-" * 60)
-        raise RuntimeError("读取 Flash 失败")
-
-    # 从输出中提取 MAC 地址
-    mac = None
-    for line in result.stdout.splitlines():
-        if "Detecting chip type" in line:
-            print(f"  检测到芯片: {line.split('...')[-1].strip()}")
-        if "Chip is" in line:
-            print(f"  {line.strip()}")
-        if "MAC:" in line:
-            mac = line.split("MAC:")[-1].strip()
-            print(f"  MAC 地址: {mac}")
-
-    if not mac:
-        raise RuntimeError("无法从设备读取 MAC 地址")
-
-    print(f"✓ 成功读取 NVS 数据到文件: {nvs_raw_bin}")
-    return mac
+# 此功能已移至 as_nvs.read_flash_and_mac()
 
 
 #------------------ 步骤3：调用服务器注册 ------------------
@@ -208,46 +151,7 @@ def request_server(mac):
 
 
 #------------------ 步骤5：烧录 NVS 数据 ------------------
-
-def flash_nvs(port):
-    """
-    烧录 NVS 数据到设备（仅烧录 NVS，不烧录固件）
-    """
-    print("\n" + "=" * 60)
-    print("步骤5: 烧录 NVS 数据到设备")
-    print("=" * 60)
-
-    # 获取 NVS BIN 文件路径
-    factory_bin = as_nvs_tool.get_nvs_bin_path()
-
-    cmd = [ESPTOOL, "--port", port, "write_flash", NVS_OFFSET, factory_bin]
-    print(f"执行命令: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        print("\n" + "!" * 60)
-        print("错误: 烧录 NVS 数据失败")
-        print("!" * 60)
-
-        # 打印详细错误信息
-        print("\n" + "-" * 60)
-        print("详细错误信息:")
-        print("-" * 60)
-
-        # 打印标准输出（如果有）
-        if result.stdout.strip():
-            print(result.stdout)
-
-        # 打印标准错误输出
-        if result.stderr.strip():
-            print(result.stderr)
-        else:
-            print("（无错误详情）")
-
-        print("-" * 60)
-        raise RuntimeError("烧录 NVS 数据失败")
-
-    print("✓ NVS 数据烧录成功!")
+# 此功能已移至 as_nvs.flash_nvs()
 
 
 #------------------ 主流程 ------------------
@@ -266,12 +170,12 @@ def main():
         # 步骤1：读取 MAC 和 NVS 数据
         mac = read_flash_and_mac(PORT)
 
-        # 步骤2：检查 NVS 数据（调用 as_nvs_tool）
-        existing_info = as_nvs_tool.check_nvs_data()
+        # 步骤2：检查 NVS 数据
+        existing_info = check_nvs_data()
 
         if existing_info:
             response = input("\n是否继续重新注册? (y/n): ")
-            if response.lower() != 'y':
+            if response.lower() != "y":
                 print("操作已取消")
                 return
 
@@ -279,7 +183,7 @@ def main():
         device_info = request_server(mac)
 
         # 步骤4：生成 NVS 数据（CSV 和 BIN）
-        as_nvs_tool.generate_nvs_data(device_info)
+        generate_nvs_data(device_info)
 
         # 步骤5：烧录 NVS 数据
         flash_nvs(PORT)
