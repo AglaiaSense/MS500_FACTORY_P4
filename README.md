@@ -1,0 +1,2 @@
+# MS500_FACTORY_P4
+MS500-EP 的出厂脚本
