@@ -1,0 +1,16 @@
+{
+  "request": {
+    "server_url": "http://192.168.0.6:8000",
+    "c_sn": "CA500-MIPI-zlxc-0053",
+    "u_sn": "MS500-H120-EP-zlcu-0053",
+    "for_organization": "",
+    "u_url": "127.0.0.1"
+  },
+  "response": {
+    "u_camera_id": 2616,
+    "u_unit_id": 1770,
+    "u_account_id": 161,
+    "password": "MS16fc08!",
+    "device_token": "1168807acf4242d0fd560675a8423e02ddfa5dad"
+  }
+}

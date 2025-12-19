@@ -1,275 +1,132 @@
-## 已完成需求
+##### 需求: 通过 SN 号向 DM 注册设备，获取注册参数，生成 nvc.bin 烧录 bin
 
-- [✓] **在python_factory下创建esp_components目录，将ESP-IDF工具移动到该目录** (2025-12-18)
-  - 已完成：
-    1. 从ESP-IDF框架复制nvs_tool.py和wl_fatfsgen.py到esp_components目录
-    2. 创建esp_components配置模块(esp_tools.py)提供统一工具接口
-    3. 重构as_nvs_tool.py使用esp_components目录下的工具
-    4. 测试验证所有工具路径正确且功能正常
-  - 目录结构：
-    ```
-    esp_components/
-    ├── __init__.py
-    ├── esp_tools.py          # 工具路径配置模块
-    ├── nvs_tools/
-    │   ├── __init__.py
-    │   └── nvs_tool.py       # NVS分区工具
-    └── fatfs_tools/
-        ├── __init__.py
-        └── wl_fatfsgen.py    # FAT文件系统生成工具
-    ```
+1. 新建 as_dm_register 目录将 as_service_register.py 和 ms500.json 移动过去
 
-- [✓] **复制ESP-IDF工具的所有依赖文件到esp_components** (2025-12-18)
-  - 已完成：
-    1. 复制nvs_tool.py的依赖文件到nvs_tools目录
-       - nvs_check.py
-       - nvs_logger.py
-       - nvs_parser.py
-    2. 复制wl_fatfsgen.py的依赖文件到fatfs_tools目录
-       - fatfsgen.py
-       - fatfs_utils/ (完整目录，包含11个Python文件)
-    3. 测试验证所有依赖导入成功
-  - 更新后的目录结构：
-    ```
-    esp_components/
-    ├── __init__.py
-    ├── esp_tools.py
-    ├── nvs_tools/
-    │   ├── __init__.py
-    │   ├── nvs_tool.py
-    │   ├── nvs_check.py
-    │   ├── nvs_logger.py
-    │   └── nvs_parser.py
-    └── fatfs_tools/
-        ├── __init__.py
-        ├── wl_fatfsgen.py
-        ├── fatfsgen.py
-        └── fatfs_utils/
-            ├── __init__.py
-            ├── boot_sector.py
-            ├── cluster.py
-            ├── entry.py
-            ├── exceptions.py
-            ├── fat.py
-            ├── fatfs_parser.py
-            ├── fatfs_state.py
-            ├── fs_object.py
-            ├── long_filename_utils.py
-            └── utils.py
-    ```
+2. ms500.json 改名成 as_request.json,主要存放请求的参数，
 
-- [✓] **将ESP-IDF Python环境移动到esp_components本地目录** (2025-12-18)
-  - 已完成：
-    1. 复制完整的Python虚拟环境到esp_components/python_env（75MB，5284个文件）
-    2. 更新esp_tools.py使用本地Python环境
-    3. 测试验证：
-       - Python 3.12.6运行正常
-       - ESP-IDF依赖包可用（construct, esp_idf_nvs_partition_gen等）
-       - as_nvs_tool.py成功使用本地Python环境
-    4. 减少了外部依赖，项目更加独立
-  - Python环境位置：
-    ```
-    esp_components/python_env/Scripts/python.exe
-    ```
-  - 注意：虚拟环境仍依赖系统Python（C:\Python312）
+3. 新建 as_respond.json,存放请求的参数和响应的参数，
 
-- [✓] **配置本地esptool并创建说明文档** (2025-12-18)
-  - 已完成：
-    1. esptool已包含在Python虚拟环境中（106KB）
-    2. 更新esp_tools.py使用本地esptool路径
-    3. 更新所有Python脚本使用本地esptool：
-       - as_flash_tool.py
-       - main.py
-       - as_model_flash.py
-    4. 测试验证esptool v4.10.0运行正常
-    5. 创建ESPTOOL_README.md说明文档
+4. 将现在的 main.py 修改成，as_factory_info.py，优化里面的代码，需要的函数都封装在 as_nvs 和 as_dm_register 里面了,
 
-  **什么是esptool？**
-  - esptool是ESP32/ESP8266的烧录和通信工具
-  - 用于烧录固件、读写Flash、读取芯片信息等
-  - 示例命令：`esptool --port COM4 read_flash 0x9000 0x10000 temp\ms500_nvs.bin`
-    - `--port COM4`：串口号
-    - `read_flash`：读取Flash命令
-    - `0x9000`：NVS分区起始地址
-    - `0x10000`：读取长度（64KB）
-    - `temp\ms500_nvs.bin`：输出文件
+- [✓] **需求1: 重构设备注册模块** (2025-12-19)
+  - 创建 as_dm_register 目录
+  - 移动 as_service_register.py 到 as_dm_register/
+  - 将 ms500.json 重命名为 as_request.json（存放请求参数）
+  - 创建 as_respond.json（存放请求参数和响应参数的完整结构）
+  - 修改 as_service_register.py 以使用新的 JSON 文件结构
+  - 将 main.py 重命名为 as_factory_info.py 并更新导入路径
 
-  - esptool位置：`esp_components/python_env/Scripts/esptool.exe`
-  - 详细说明：见 `esp_components/ESPTOOL_README.md`
+#### 需求：烧录整个程序
 
-- [✓] **解决as_model_auth导入问题** (2025-12-18)
-  - 问题分析：
-    - `from as_model_auth import generate_model_by_device_id` 可能报错
-    - 原因：as_model_auth.py在model/子目录中
+1. 新建 as_flash_firmware 目录，将 as_firmware_tool.py 函数移动过去，将 ms500_build 移动进去
 
-  - 解决方案：
-    在导入前需要将model目录添加到sys.path：
-    ```python
-    import sys
-    import os
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "model"))
-    from as_model_auth import generate_model_by_device_id
-    ```
+2. 在 as_flash_firmware 目录下新建 bin_type 目录，将 ms500_build 改名成 ped_alarm 移动到 bin_type 中，
 
-  - 验证结果：
-    - ✓ as_model_auth.py导入成功
-    - ✓ generate_model_by_device_id函数可用
-    - ✓ as_model_flash.py正常工作
-    - ✓ model_conversion.py依赖正常
+3. ped_alarm 下有个 partitions.csv 文件，里面是需要烧录的地址，和需要烧录的文件。烧录地址和文件都从这里面获取，不需要写死
 
-  - 使用的文件：
-    - `pc_client/python_factory/as_model_flash.py` (已正确配置)
-    - `pc_client/python_factory/model/as_model_auth.py`
-    - `pc_client/python_factory/model/model_conversion.py`
+- [✓] **需求2: 重构固件烧录模块** (2025-12-19)
+  - 创建 as_flash_firmware 目录
+  - 移动 as_firmware_tool.py 到 as_flash_firmware/
+  - 移动 ms500_build 到 as_flash_firmware/
+  - 在 as_flash_firmware 下创建 bin_type 目录
+  - 将 ms500_build 重命名为 ped_alarm 移动到 bin_type/
+  - 创建 flash_config.csv 配置文件（包含文件名和烧录地址映射）
+  - 修改 as_firmware_tool.py 实现从 CSV 文件动态读取烧录配置
+  - 添加 load_flash_config() 函数解析 CSV 配置
+  - 更新文件路径以支持模块化结构
 
-- [✓] **创建 CLAUDE.md 文件并整合 .claude 目录规则** (2025-12-19)
-  - 已完成：
-    1. 分析代码库架构和核心模块（main.py, as_service_register.py, as_nvs_tool.py, as_flash_tool.py, as_model_flash.py）
-    2. 阅读 .claude 目录中的配置规则：
-       - settings.json：项目规范、语言设置、编码标准
-       - settings.local.json：权限配置和 prettier 钩子
-       - commands/task.md：任务管理规则
-       - commands/generate-prp.md 和 execute-prp.md：PRP 工作流
-    3. 创建中文版 CLAUDE.md 文档，包含：
-       - 项目概述和核心架构说明
-       - ESP 组件系统详细介绍
-       - NVS 分区架构和工作流程
-       - 工厂生产、服务器注册、AI 模型部署流程
-       - 常用开发命令和配置文件说明
-       - ESP32-P4 Flash 内存映射表
-       - 错误处理模式和关键架构说明
-    4. 整合项目规范到 CLAUDE.md：
-       - 语言规范：响应中文、注释中文、日志英文
-       - 编码标准：500 行限制、注释风格、段落分隔符
-       - 工作流规范：任务追踪、格式检查
-       - 代码格式规范：prettier 自动检查
+- [✓] **代码格式化** (2025-12-19)
+  - 执行 npx prettier --write . 修复所有格式问题
 
-  - 文档特点：
-    - 全中文编写，符合 .claude/settings.json 中的语言要求
-    - 专注于"大局"架构，避免重复 README.md 内容
-    - 包含跨文件理解才能掌握的架构决策
-    - 提供实用的命令和配置参考
-    - 整合了 .claude 目录中的所有项目规范
+#### 需求：删除一级目录下的 as_nvs_tool.py，如果需要使用 as_nvs/as_nvs_tool.py
 
-- [✓] **重构 as_nvs_tool.py 并进行业务拆分** (2025-12-19)
-  - 已完成：
-    1. 创建 as_nvs 目录作为 NVS 功能模块包
-    2. 业务拆分为三个独立模块：
-       - **as_nvs_read.py**：NVS 读取和解析功能
-         - `init_temp_dir()` - 初始化临时目录（位于 as_nvs/temp/）
-         - `read_flash_and_mac(port)` - 从设备读取 NVS 和 MAC 地址
-         - `check_nvs_data()` - 检查并解析 NVS 数据
-         - `convert_to_csv()` - 格式转换辅助函数
-         - `get_nvs_raw_bin_path()` - 获取原始 NVS bin 路径
+- [✓] **需求3: 清理重复文件** (2025-12-19)
+  - 检查项目中是否有引用根目录 as_nvs_tool.py 的代码
+  - 确认所有引用已使用 as_nvs 模块导入
+  - 删除根目录下的 as_nvs_tool.py 文件
+  - 统一使用 as_nvs/as_nvs_tool.py
 
-       - **as_nvs_update.py**：NVS 生成和烧录功能
-         - `generate_nvs_data(info)` - 生成 NVS CSV 和 BIN 文件
-         - `flash_nvs(port)` - 烧录 NVS 数据到设备
-         - `get_nvs_bin_path()` - 获取生成的 NVS bin 路径
+#### 需求：直接使用 partitions.csv 文件，而不是 flash_config.csv
 
-       - **as_nvs_tool.py**：兼容性包装器
-         - 重新导出所有函数，保持向后兼容
-         - 允许旧代码继续使用 `import as_nvs_tool` 方式
+- [✓] **需求4: 使用 partitions.csv 替代 flash_config.csv** (2025-12-19)
+  - 分析 partitions.csv 文件格式（ESP-IDF 标准分区表格式）
+  - 创建 PARTITION_TO_BIN 映射表（分区名称到 bin 文件的对应关系）
+  - 重写 load_flash_config() 函数解析 partitions.csv
+  - 支持固定地址（bootloader、partition-table）和分区表地址
+  - 删除 flash_config.csv 文件
+  - 更新配置文件路径从 FLASH_CONFIG_FILE 改为 PARTITIONS_CSV
 
-    3. 创建 __init__.py 统一导出接口
-    4. 临时目录位置变更：从根目录 `temp/` 改为 `as_nvs/temp/`
-    5. 更新 main.py 使用新的 as_nvs 模块：
-       - 从 `as_nvs` 导入所需函数
-       - 移除 main.py 中重复的 `read_flash_and_mac()` 和 `flash_nvs()` 函数
-       - 使用模块化的函数调用
-    6. 更新 as_model_flash.py 使用新的 as_nvs 模块：
-       - 替换所有 `as_nvs_tool.` 调用为直接导入的函数
-       - 使用 `nvs_init_temp_dir` 别名避免命名冲突
+#### 需求：优化 load_flash_config()，传入目录就烧录该目录的 bin 文件
 
-  - 新的目录结构：
-    ```
-    as_nvs/
-    ├── __init__.py           # 统一导出接口
-    ├── as_nvs_read.py       # NVS 读取和解析模块
-    ├── as_nvs_update.py     # NVS 生成和烧录模块
-    ├── as_nvs_tool.py       # 兼容性包装器（向后兼容）
-    └── temp/                # 临时文件目录
-        ├── ms500_nvs.bin
-        ├── factory_decoded.csv
-        ├── factory_data.csv
-        └── factory_nvs.bin
-    ```
+支持多个固件目录（ped_alarm 和 sdk_uvc），partitions.csv 可能分配了地址，但是没有 .bin 文件就不烧录
 
-  - 验证结果：
-    - ✓ as_nvs 模块导入成功
-    - ✓ main.py 导入和运行正常
-    - ✓ as_model_flash.py 导入和运行正常
-    - ✓ 临时目录正确创建在 as_nvs/temp/ 下
-    - ✓ 所有功能模块化，代码更清晰易维护
-    - ✓ 向后兼容性保持，旧代码仍可使用
+- [✓] **需求5: 优化 load_flash_config 支持动态目录和文件检测** (2025-12-19)
+  - 修改 load_flash_config() 函数签名，添加 bin_dir 参数
+  - 从传入的目录读取 partitions.csv 文件
+  - 添加 bin 文件存在性检查逻辑（os.path.exists）
+  - 只烧录实际存在的 bin 文件，不存在则跳过
+  - 跳过空地址分区（自动分配的分区）
+  - 添加清晰的日志输出（✓ 成功 / ⊗ 跳过）
+  - 更新 main() 函数调用，传入 BUILD_DIR 参数
+  - 支持通过修改 BIN_TYPE 变量切换不同固件目录
 
-  - 优势：
-    - 职责分离：读取、更新功能独立
-    - 可维护性：每个模块职责单一，易于理解和修改
-    - 可测试性：独立模块便于单元测试
-    - 临时文件隔离：temp 目录在模块内部，不污染项目根目录
+#### 需求：保留 NVS 原有参数（g_camera_id、wake_count 等）
 
+在 as_nvs_update.py 生成 bin 烧录之前，使用 as_nvs_read.py 已经读取部分参数，比如 g_camera_id，wake_count。需要将之前的参数也保留下来，使用 as_nvs_update 烧录时恢复之前的参数
 
+- [✓] **需求6: NVS 参数保留和恢复机制** (2025-12-19)
+  - 修改 generate_nvs_data() 函数签名，添加 existing_nvs 可选参数
+  - 实现参数合并逻辑：原有参数作为基础，新参数覆盖同名参数
+  - 添加参数保留和更新的日志输出
+  - 更新 as_factory_info.py 中的调用，传入 existing_info
+  - 更新 as_model_flash.py 中的调用，传入 nvs_info
+  - 保持向后兼容性：existing_nvs 为可选参数，不传则只写入新参数
 
+#### 需求：创建相机时添加 c_sensor 参数
 
+在 camera_data 中新增 c_sensor 参数，从 NVS 的 g_camera_id 读取并赋值给 c_sensor 进行上传
 
+相机数据格式：
 
-- [✓] **在 as_nvs_read.py 中新增 main 函数，支持直接调用** (2025-12-19)
-  - 已完成：
-    1. 在 as_nvs/as_nvs_read.py 中添加 main() 函数
-    2. 支持命令行参数指定串口号
-    3. 实现完整的 NVS 读取和解析流程
-    4. 添加友好的输出格式和错误处理
+```json
+{
+  "c_sn": "string",
+  "c_sensor": "string",
+  "c_order": 1,
+  "c_status": "NVCONNCTD"
+}
+```
 
-  - 功能说明：
-    - **独立运行**：可以直接通过 Python 执行该文件
-    - **参数支持**：支持命令行传入串口号，默认 COM4
-    - **完整流程**：自动执行读取 Flash、解析 NVS、显示结果
-    - **错误处理**：包含完整的异常捕获和用户友好提示
+- [✓] **需求7: 创建相机时添加 c_sensor 参数** (2025-12-19)
+  - 修改 as_service_register.main() 函数签名，添加 g_camera_id 可选参数
+  - 在创建相机时，如果提供了 g_camera_id，则添加到 camera_data 的 c_sensor 字段
+  - 修改 as_factory_info.py 的 request_server() 函数，添加 existing_info 参数
+  - 从 existing_info 中提取 g_camera_id 并传递给注册函数
+  - 更新 main() 函数调用，传入 existing_info 参数
+  - 添加日志输出显示 g_camera_id 的读取和使用情况
 
-  - 使用方法：
-    ```bash
-    # 使用默认串口 COM4
-    python as_nvs/as_nvs_read.py
+#### 需求：修改名称
 
-    # 指定串口号
-    python as_nvs/as_nvs_read.py COM5
-    ```
+将 NVS 相关的文件常量名称改为更语义化的名称
 
-  - 输出内容：
-    - 串口连接信息
-    - 设备 MAC 地址
-    - NVS 分区状态（空白/有数据）
-    - NVS 数据内容（如果有）
-    - 所有注册信息键值对
+- [✓] **需求8: 重命名 NVS 文件常量** (2025-12-19)
+  - 修改 as_nvs_read.py 中的常量：
+    - NVS_RAW_BIN → READ_BIN = os.path.join(TEMP_DIR, "read.bin")
+    - DECODED_CSV → READ_CSV = os.path.join(TEMP_DIR, "read.csv")
+  - 修改 as_nvs_update.py 中的常量：
+    - FACTORY_CSV → UPDATE_CSV = os.path.join(TEMP_DIR, "update.csv")
+    - FACTORY_BIN → UPDATE_BIN = os.path.join(TEMP_DIR, "update.bin")
+  - 使用 replace_all 功能替换所有引用
+  - 执行代码格式化检查并修复
 
-  - 验证结果：
-    - ✓ main 函数成功添加
-    - ✓ 文件可以独立运行
-    - ✓ main 函数可以被其他模块导入
-    - ✓ 命令行参数解析正常
-    - ✓ 错误处理完善
+#### 需求：重命名目录和文件
 
-- [✓] **修改 .claude 任务管理规范，优化 task.md 记录方式** (2025-12-19)
-  - 已完成：
-    1. 更新 .claude/commands/task.md 文件
-    2. 添加"只记录本次新增修改"的原则
-    3. 明确 task.md 文件结构规范
-    4. 添加记录更新原则说明
+将固件烧录相关的目录和文件重命名为更规范的名称
 
-  - 新增规范：
-    - **记录原则**：只添加本次新完成的需求记录，不重复添加历史记录
-    - **文件结构**：
-      - `## 已完成需求` 区域：存放所有已完成的需求
-      - `需求：` 开头的行：待处理的新需求
-    - **更新流程**：
-      1. 完成需求后，将 `需求：` 行转换为 `- [✓]` 格式
-      2. 添加到 `## 已完成需求` 区域的末尾
-      3. 删除原 `需求：` 行
-      4. 不要重新复制粘贴整个已完成需求列表
-
-  - 优势：
-    - 避免 task.md 文件无限增长
-    - 减少重复内容
-    - 提高可读性
-    - 节省 token 消耗
+- [✓] **需求9: 重命名 as_factory 目录和文件** (2025-12-19)
+  - 创建 as_flash_firmware 目录
+  - 复制 as_factory 目录下所有文件到 as_flash_firmware/
+  - 重命名 as_flash_tool.py 为 as_firmware_tool.py
+  - 删除旧的 as_factory 目录
+  - 更新 task.md 中的所有引用
+  - 更新 CLAUDE.md 中的所有引用

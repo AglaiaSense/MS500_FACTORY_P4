@@ -73,6 +73,7 @@ def main():
 ```
 
 **如何查看设备串口：**
+
 - Windows：设备管理器 → 端口(COM 和 LPT)
 - Linux/Mac：`ls /dev/ttyUSB*` 或 `ls /dev/ttyACM*`
 
@@ -88,6 +89,7 @@ waiting for download
 ```
 
 **进入烧录模式的方法：**
+
 1. **自动模式**：如果开发板支持 DTR/RTS 自动复位，esptool 会自动进入烧录模式
 2. **手动模式**：
    - 按住 **Boot** 按钮
@@ -101,14 +103,15 @@ waiting for download
 
 ```json
 {
-    "server_url": "https://your-server.com",
-    "c_sn": "MS500-H090-EP-2549-0001",
-    "for_organization": "your-org-id",
-    "u_url": "127.0.0.1"
+  "server_url": "https://your-server.com",
+  "c_sn": "MS500-H090-EP-2549-0001",
+  "for_organization": "your-org-id",
+  "u_url": "127.0.0.1"
 }
 ```
 
 **必填参数：**
+
 - `server_url` - 服务器地址
 - `c_sn` - 设备序列号（必须唯一，每台设备不同）
 - `u_url` - 设备 URL 地址（默认 127.0.0.1）
@@ -386,20 +389,20 @@ main()                     # 执行完整的注册流程
 
 ```json
 {
-    "server_url": "https://your-server.com",
-    "c_sn": "MS500-H090-EP-2549-0001",
-    "for_organization": "your-org-id",
-    "u_url": "127.0.0.1"
+  "server_url": "https://your-server.com",
+  "c_sn": "MS500-H090-EP-2549-0001",
+  "for_organization": "your-org-id",
+  "u_url": "127.0.0.1"
 }
 ```
 
 ### 4.2 必填参数
 
-| 参数 | 说明 | 示例 |
-|------|------|------|
-| server_url | 服务器地址 | https://server.com |
-| c_sn | 设备序列号，必须唯一 | MS500-H090-EP-2549-0001 |
-| u_url | 设备 URL 地址 | 127.0.0.1 |
+| 参数       | 说明                 | 示例                    |
+| ---------- | -------------------- | ----------------------- |
+| server_url | 服务器地址           | https://server.com      |
+| c_sn       | 设备序列号，必须唯一 | MS500-H090-EP-2549-0001 |
+| u_url      | 设备 URL 地址        | 127.0.0.1               |
 
 ### 4.3 注册后新增字段
 
@@ -407,11 +410,11 @@ main()                     # 执行完整的注册流程
 
 ```json
 {
-    "u_camera_id": 123,
-    "u_unit_id": 456,
-    "u_account_id": 789,
-    "password": "MS79b2a1!",
-    "device_token": "abc123..."
+  "u_camera_id": 123,
+  "u_unit_id": 456,
+  "u_account_id": 789,
+  "password": "MS79b2a1!",
+  "device_token": "abc123..."
 }
 ```
 
@@ -419,11 +422,11 @@ main()                     # 执行完整的注册流程
 
 ## 5. 工具对比
 
-| 工具 | 功能 | 使用场景 | 依赖 |
-|------|------|----------|------|
-| **main.py** | 完整生产流程控制 | 工厂批量生产 | as_nvs_tool, as_service_register |
-| **as_nvs_tool.py** | NVS 数据管理 | 被 main.py 调用 | nvs_tool.py, esptool |
-| **as_service_register.py** | 设备注册 | 独立注册或被调用 | requests, ms500.json |
+| 工具                       | 功能             | 使用场景         | 依赖                             |
+| -------------------------- | ---------------- | ---------------- | -------------------------------- |
+| **main.py**                | 完整生产流程控制 | 工厂批量生产     | as_nvs_tool, as_service_register |
+| **as_nvs_tool.py**         | NVS 数据管理     | 被 main.py 调用  | nvs_tool.py, esptool             |
+| **as_service_register.py** | 设备注册         | 独立注册或被调用 | requests, ms500.json             |
 
 ---
 
@@ -471,7 +474,7 @@ temp/
 5. **NVS 分区配置** - 偏移地址和大小必须与分区表一致
 6. **网络要求** - 确保可以访问 server_url 指定的服务器
 7. **临时文件** - 生产流程会在 temp/ 目录生成临时文件
-8. **模块命名** - 注意 as_ 前缀，表示这是应用级服务模块
+8. **模块命名** - 注意 as\_ 前缀，表示这是应用级服务模块
 
 ---
 
@@ -497,6 +500,7 @@ NVS_SIZE = "0x10000"  # 64KB
 **问题3: 设备连接失败怎么办？**
 
 检查：
+
 1. 设备是否正确连接到指定 COM 端口
 2. 设备是否处于下载模式（按住 Boot 按钮重启）
 3. 串口是否被其他程序占用
@@ -505,6 +509,7 @@ NVS_SIZE = "0x10000"  # 64KB
 **问题4: NVS 解析失败怎么办？**
 
 可能原因：
+
 1. NVS 分区数据损坏 - 重新烧录固件
 2. NVS 分区格式不兼容 - 检查固件版本
 3. 分区配置错误 - 检查偏移地址和大小
@@ -512,12 +517,14 @@ NVS_SIZE = "0x10000"  # 64KB
 **问题5: 如何处理重复注册？**
 
 如果提示 "Camera SN is already registered"，有两个选择：
+
 1. 修改 ms500.json 中的 c_sn 为新的序列号
 2. 在服务器端删除旧的摄像头记录（如果确认需要重新注册）
 
 **问题6: 临时文件存放在哪里？**
 
 所有临时文件统一存放在 `temp/` 目录下，包括：
+
 - temp/ms500_nvs.bin
 - temp/factory_decoded.csv
 - temp/factory_data.csv

@@ -23,18 +23,21 @@
 ## 常用命令示例
 
 ### 1. 读取芯片信息
+
 ```bash
 esptool --port COM4 chip_id
 esptool --port COM4 read_mac
 ```
 
 ### 2. 读取 Flash 数据
+
 ```bash
 # 读取 NVS 分区（从 0x9000 开始，读取 64KB）
 esptool --port COM4 read_flash 0x9000 0x10000 temp\ms500_nvs.bin
 ```
 
 **命令参数说明**：
+
 - `--port COM4`：指定串口号
 - `read_flash`：读取 Flash 命令
 - `0x9000`：起始地址（NVS 分区偏移）
@@ -42,6 +45,7 @@ esptool --port COM4 read_flash 0x9000 0x10000 temp\ms500_nvs.bin
 - `temp\ms500_nvs.bin`：输出文件路径
 
 ### 3. 烧录固件
+
 ```bash
 # 烧录单个文件
 esptool --port COM4 write_flash 0x9000 nvs.bin
@@ -57,6 +61,7 @@ esptool -p COM4 -b 460800 write_flash \
 ```
 
 **常用参数**：
+
 - `-p` / `--port`：串口号
 - `-b` / `--baud`：波特率（默认 115200，可用 460800, 921600）
 - `--before`：烧录前操作（default_reset, no_reset）
@@ -67,6 +72,7 @@ esptool -p COM4 -b 460800 write_flash \
 - `--flash_size`：Flash 大小（2MB, 4MB, 8MB, 16MB）
 
 ### 4. 擦除 Flash
+
 ```bash
 # 擦除整个 Flash
 esptool --port COM4 erase_flash
@@ -76,6 +82,7 @@ esptool --port COM4 erase_region 0x9000 0x10000
 ```
 
 ### 5. 重启设备
+
 ```bash
 esptool --port COM4 run
 ```
@@ -113,16 +120,19 @@ ESPTOOL = get_esptool()
 ## 错误排查
 
 ### 1. 串口连接失败
+
 - 检查串口号是否正确
 - 检查设备是否连接
 - 检查串口是否被其他程序占用
 
 ### 2. 烧录失败
+
 - 尝试降低波特率
 - 确保设备处于下载模式
 - 检查 Flash 地址和大小是否正确
 
 ### 3. 读取 Flash 失败
+
 - 确保设备处于运行状态
 - 检查地址和长度是否有效
 - 确认 Flash 分区配置正确

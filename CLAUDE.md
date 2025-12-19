@@ -9,11 +9,13 @@ MS500 工厂生产系统 - 用于 MS500 ESP32-P4 摄像头设备的综合性工�
 ## 项目规范（来自 .claude/settings.json）
 
 ### 语言规范
+
 - **响应语言**：中文（zh-CN）
 - **代码注释**：中文
 - **日志消息**：英文（ESP_LOGI、printf 等所有打印输出必须使用英文）
 
 ### 编码标准
+
 - **最大文件行数**：500 行
 - **注释风格**：
   - 函数注释：`// 中文注释`
@@ -22,12 +24,14 @@ MS500 工厂生产系统 - 用于 MS500 ESP32-P4 摄像头设备的综合性工�
   - 段落分隔符：`#------------------  功能描述  ------------------`
 
 ### 工作流规范
+
 - 开始前检查 task.md 中的任务
 - 完成时标记任务（格式：`- [✓] **任务名称** (日期)`）
 - 每次提问和提交都是一次需求，都在 task.md 里记录
 - 代码修改后执行格式检查
 
 ### Python 环境
+
 - ESP-IDF Python 环境已内置在 `esp_components/python_env/`
 - Python 版本：3.12.6
 - 包含所有必需的 ESP-IDF 工具和依赖
@@ -41,7 +45,7 @@ MS500 工厂生产系统 - 用于 MS500 ESP32-P4 摄像头设备的综合性工�
 1. **main.py** - 编排完整的工厂生产工作流
 2. **as_service_register.py** - 处理服务器端设备注册
 3. **as_nvs_tool.py** - 管理 NVS 分区操作（读取/写入/解析）
-4. **as_flash_tool.py** - 将固件二进制文件烧录到 ESP32-P4
+4. **as_firmware_tool.py** - 将固件二进制文件烧录到 ESP32-P4
 5. **as_model_flash.py** - 自动化 AI 模型部署到设备
 
 所有模块使用 `as_` 前缀表示应用级服务模块。
@@ -101,6 +105,7 @@ NVS（非易失性存储）对于设备身份和配置至关重要：
   - `g_camera_id` - 用于 AI 模型认证的全局相机 ID（字符串，32 字符十六进制）
 
 **NVS 工作流程**：
+
 1. 使用 esptool 从设备读取原始二进制
 2. 使用官方 `nvs_tool.py` 的 "minimal" 格式解析
 3. 将解析的输出转换为 CSV 格式
@@ -142,6 +147,7 @@ NVS（非易失性存储）对于设备身份和配置至关重要：
 `as_model_flash.py` 实现自动化 AI 模型部署：
 
 **工作流程**：
+
 1. 读取 NVS → 提取 `g_camera_id`（32 字符十六进制设备 ID）
 2. 生成模型 → 调用 `model/as_model_auth.py::generate_model_by_device_id()`
 3. 创建 FAT 镜像 → 将模型文件打包到 `storage_dl.bin`（FAT 文件系统）
@@ -159,27 +165,29 @@ NVS（非易失性存储）对于设备身份和配置至关重要：
 ### 配置文件
 
 **ms500.json** - 主设备配置：
+
 ```json
 {
-    "server_url": "http://...",
-    "c_sn": "CA500-MIPI-...",      // 相机序列号（唯一）
-    "u_sn": "MS500-H120-EP-...",   // 单元序列号（唯一）
-    "for_organization": "",
-    "u_url": "127.0.0.1",
-    // 注册后自动填充：
-    "u_camera_id": 2612,
-    "u_unit_id": 1766,
-    "u_account_id": 157,
-    "password": "MS05e8f1!",
-    "device_token": "..."
+  "server_url": "http://...",
+  "c_sn": "CA500-MIPI-...", // 相机序列号（唯一）
+  "u_sn": "MS500-H120-EP-...", // 单元序列号（唯一）
+  "for_organization": "",
+  "u_url": "127.0.0.1",
+  // 注册后自动填充：
+  "u_camera_id": 2612,
+  "u_unit_id": 1766,
+  "u_account_id": 157,
+  "password": "MS05e8f1!",
+  "device_token": "..."
 }
 ```
 
 **model/model_config.json** - AI 模型配置：
+
 ```json
 {
-    "model_dir": "person_alerm",   // model/ 下的模型目录
-    "device_id": "..."             // 从 NVS g_camera_id 自动读取
+  "model_dir": "person_alerm", // as_model_conversion/ 下的模型目录
+  "device_id": "..." // 从 NVS g_camera_id 自动读取
 }
 ```
 
@@ -208,9 +216,9 @@ python as_service_register.py
 
 ```bash
 # 将完整固件烧录到 ESP32-P4
-python as_flash_tool.py
+python as_flash_firmware/as_firmware_tool.py
 
-# 前提条件：ms500_build/ 目录中的固件文件：
+# 前提条件：as_flash_firmware/bin_type/ 目录中的固件文件：
 #   - bootloader.bin (0x2000)
 #   - ms500_p4.bin (0x20000)
 #   - partition-table.bin (0x8000)
@@ -225,8 +233,8 @@ python as_flash_tool.py
 python as_model_flash.py
 
 # 前提条件：
-#   1. 模型文件位于 model/{model_dir}/packerOut.zip
-#   2. 配置 model/model_config.json
+#   1. 模型文件位于 as_model_conversion/{model_dir}/packerOut.zip
+#   2. 配置 as_model_conversion/model_config.json
 #   3. 设备 NVS 必须包含 g_camera_id
 ```
 
@@ -252,32 +260,35 @@ as_nvs_tool.generate_nvs_data(device_info)
 
 ESP32-P4 的关键分区偏移：
 
-| 分区 | 偏移 | 大小 | 用途 |
-|------|------|------|------|
-| bootloader | 0x2000 | - | 引导加载程序二进制文件 |
-| partition-table | 0x8000 | - | 分区表 |
-| nvs | 0x9000 | 64KB | 非易失性存储 |
-| ota_data | 0x19000 | - | OTA 更新数据 |
-| firmware | 0x20000 | - | 主应用程序 |
-| storage | 0x720000 | - | 存储分区 |
-| storage_dl | 0x8A0000 | 7MB | AI 模型存储（FAT） |
+| 分区            | 偏移     | 大小 | 用途                   |
+| --------------- | -------- | ---- | ---------------------- |
+| bootloader      | 0x2000   | -    | 引导加载程序二进制文件 |
+| partition-table | 0x8000   | -    | 分区表                 |
+| nvs             | 0x9000   | 64KB | 非易失性存储           |
+| ota_data        | 0x19000  | -    | OTA 更新数据           |
+| firmware        | 0x20000  | -    | 主应用程序             |
+| storage         | 0x720000 | -    | 存储分区               |
+| storage_dl      | 0x8A0000 | 7MB  | AI 模型存储（FAT）     |
 
 ## 串口配置
 
 默认值：`COM4`（Windows）
 
 **修改方法**：编辑相应 Python 文件中的 `PORT` 变量：
+
 - `main.py:15`
-- `as_flash_tool.py:18`
+- `as_flash_firmware/as_firmware_tool.py:18`
 - `as_model_flash.py:57`
 
 **查找端口**：
+
 - Windows：设备管理器 → 端口（COM 和 LPT）
 - Linux/Mac：`ls /dev/ttyUSB*` 或 `ls /dev/ttyACM*`
 
 ## 设备连接要求
 
 **下载模式（引导加载程序）**：
+
 - ESP32 必须处于下载模式才能进行烧录操作
 - 自动模式：如果硬件支持 DTR/RTS，esptool 会自动处理
 - 手动模式：
@@ -289,22 +300,26 @@ ESP32-P4 的关键分区偏移：
 ## 错误处理模式
 
 ### 连接错误
+
 - 检查 COM 端口号和可用性
 - 验证设备是否处于下载模式
 - 确保没有其他程序使用串口
 - 确认驱动程序安装
 
 ### NVS 解析错误
+
 - NVS 分区可能为空（全部 0xFF）- 新设备正常
 - 分区数据损坏 - 重新烧录固件
 - 格式不兼容 - 检查 ESP-IDF 版本
 
 ### 注册错误
+
 - "Camera SN already registered" - 在 ms500.json 中更改 c_sn
 - 网络超时 - 验证 server_url 可访问性
 - 令牌认证失败 - 检查管理员令牌有效性
 
 ### 模型烧录错误
+
 - g_camera_id 未找到 - 必须先注册设备
 - 模型生成失败 - 检查模型目录和 packerOut.zip
 - FAT 生成失败 - 验证文件数量和大小限制
@@ -346,6 +361,7 @@ temp/
 ## 测试和验证
 
 工厂生产后，验证：
+
 1. 设备成功启动
 2. 通过 `as_nvs_tool.check_nvs_data()` 可读取 NVS 数据
 3. 设备可以使用 device_token 与服务器认证
@@ -363,6 +379,7 @@ npx prettier --check .
 ```
 
 如需手动格式化，运行：
+
 ```bash
 npx prettier --write .
 ```
@@ -370,6 +387,7 @@ npx prettier --write .
 ## 任务管理
 
 参考 `task.md` 文件进行任务追踪：
+
 - 每个需求都要记录完成情况
 - 格式：`- [✓] **需求名称** (YYYY-MM-DD)`
 - 每次提问和提交都是一次需求，都需要在 task.md 中记录

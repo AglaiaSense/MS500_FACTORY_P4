@@ -12,12 +12,12 @@ MS500 AI 模型自动烧录工具（全新版本）
 
 使用前准备:
 1. 准备模型文件:
-   - 在 model/ 目录下创建模型目录 (例如: model/person_alerm/)
+   - 在 as_model_conversion/ 目录下创建模型目录 (例如: as_model_conversion/person_alerm/)
    - 将 packerOut.zip 文件放入该目录
    - (可选) 如需替换 network_info.txt，也放入该目录
 
 2. 配置文件:
-   - 编辑 model/model_config.json 文件
+   - 编辑 as_model_conversion/model_config.json 文件
    - 设置 model_dir (模型目录名，如 "person_alerm")
    - device_id 会自动从 NVS 中的 u_camera_id 获取
 
@@ -45,8 +45,8 @@ from esp_components import (
     get_esptool,
 )
 
-# 导入 as_nvs 模块
-from as_nvs import (
+# 导入 as_nvs_flash 模块
+from as_nvs_flash import (
     init_temp_dir as nvs_init_temp_dir,
     get_nvs_raw_bin_path,
     check_nvs_data,
@@ -55,7 +55,7 @@ from as_nvs import (
 )
 
 # 导入 as_model_auth 模块（需要添加到路径）
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "model"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "as_model_conversion"))
 from as_model_auth import generate_model_by_device_id
 
 # ========== 配置区 ==========
@@ -79,7 +79,7 @@ NVS_OFFSET = "0x9000"  # NVS 分区偏移地址
 NVS_SIZE = "0x10000"  # 64KB
 
 # 模型配置文件路径
-MODEL_CONFIG_FILE = os.path.join("model", "model_config.json")
+MODEL_CONFIG_FILE = os.path.join("as_model_conversion", "model_config.json")
 
 # 使用 esp_components 提供的工具路径
 ESP_IDF_PYTHON = get_esp_idf_python()
@@ -185,7 +185,7 @@ def generate_model_files(device_id):
         生成的模型文件的 temp 目录路径，失败返回 None
     """
     print("\n" + "=" * 60)
-    print("Step 2: Generate AI model files")
+    print("Step 2: Generate AI as_model_conversion files")
     print("=" * 60)
 
     try:
@@ -400,8 +400,9 @@ def update_nvs_with_model_flag():
         print(f"\n✓ Added is_model_update=1")
 
         # 生成新的 NVS bin 文件
+        # 传入 nvs_info 以保留所有原有参数
         print("\nGenerating new NVS bin file...")
-        generate_nvs_data(info)
+        generate_nvs_data(info, existing_nvs=nvs_info)
 
         # 获取生成的 NVS bin 文件路径
         nvs_bin_path = get_nvs_bin_path()
@@ -526,7 +527,7 @@ def main():
         # 步骤2: 调用 as_model_auth.py 生成模型
         model_temp_dir = generate_model_files(device_id)
         if not model_temp_dir:
-            print("\n✗ Failed to generate model files")
+            print("\n✗ Failed to generate as_model_conversion files")
             return 1
 
         # 步骤3: 创建 storage_dl.bin

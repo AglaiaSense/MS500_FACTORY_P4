@@ -694,7 +694,7 @@ class ReadElf(object):
                 if isinstance(entry, GenericEHABIEntry):
                     self._emitline("    Personality: 0x%x" % entry.personality)
                 else:
-                    self._emitline("    Compact model index: %d" % entry.personality)
+                    self._emitline("    Compact as_model_conversion index: %d" % entry.personality)
                     for mnemonic_item in entry.mnmemonic_array():
                         self._emit('    ')
                         self._emitline(mnemonic_item)

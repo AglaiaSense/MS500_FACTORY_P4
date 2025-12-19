@@ -206,8 +206,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 .idea/
-model/person_alerm/output/
-model/person_alerm/temp/
+as_model_conversion/person_alerm/output/
+as_model_conversion/person_alerm/temp/
 *.csv
 temp/
 .claude/
