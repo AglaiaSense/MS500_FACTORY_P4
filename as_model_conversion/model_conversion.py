@@ -198,8 +198,7 @@ def download_model(publish_url, output_dir=None):
 def model_convert(device_id, model_path, output_dir=None):
     """
     模型转换主函数
-
-    Args:
+Args:
         device_id: 设备ID
         model_path: 模型文件路径
         output_dir: 输出目录，如果为None则保存到当前目录
@@ -232,64 +231,3 @@ def model_convert(device_id, model_path, output_dir=None):
     return None
 
 
-# 加载转换器配置
-def load_converter_config():
-    """从 converter_config.json 加载转换器配置"""
-    config_file = "resource/converter_config.json"
-    try:
-        with open(config_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"加载转换器配置失败: {e}")
-        return None
-
-
-# 模型转换器工厂函数
-def get_model_converter(converter_type: str, config: dict):
-    """
-    根据配置创建模型转换器实例
-
-    Args:
-        converter_type: 转换器类型 ("Sony" | "Irida")
-        config: 配置字典，包含客户配置（如 IridaModelId）和进度回调
-
-    Returns:
-        转换器实例 (SonyModelConverter 或 IridaModelConverter)
-    """
-    if converter_type == "Irida":
-        from update.irida_converter import IridaModelConverter
-
-        # 从转换器配置文件读取 API Key 和 Base URL
-        converter_config = load_converter_config()
-        if not converter_config:
-            raise ValueError("无法加载转换器配置文件 (converter_config.json)")
-
-        irida_config = converter_config.get("converters", {}).get("Irida", {})
-        api_key = irida_config.get("apiKey", "")
-        base_url = irida_config.get("baseUrl", "")
-
-        if not api_key or not base_url:
-            raise ValueError("转换器配置文件中缺少 Irida API Key 或 Base URL")
-
-        # 从客户配置读取模型 ID
-        model_id = config.get("IridaModelId", "parking-mm")
-        progress_callback = config.get("progress_callback", None)
-
-        print(f"创建 Irida 转换器: API Key={'***' + api_key[-4:]}, 模型={model_id}")
-        return IridaModelConverter(api_key, base_url, model_id, progress_callback)
-    else:  # 默认 Sony
-        from update.sony_converter import SonyModelConverter
-        print("创建 Sony 转换器")
-        return SonyModelConverter()
-
-
-# if __name__ == "__main__":
-#     # 可以在这里替换 DEVICE_ID, MODEL_PATH, MODEL_ID
-#     DEVICE_ID = "100B50501A2101059064011000000000"
-#     MODEL_PATH = "SSDMOBILENET/300x300/v3.5-ssd_mobilenet_v1_0.75_depth_quantized_qat_MLIR-packerOut.zip"
-#
-#     filename = model_convert(DEVICE_ID, MODEL_PATH)
-#     if filename:
-#         print(f"Successfully converted as_model_conversion. Filename: {filename}")
-#     else:
-#         print(f"Model conversion failed.")

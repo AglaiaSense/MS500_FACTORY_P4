@@ -186,7 +186,7 @@ NVS（非易失性存储）对于设备身份和配置至关重要：
 
 ```json
 {
-  "model_dir": "person_alerm", // as_model_conversion/ 下的模型目录
+  "model_dir": "ped_alerm", // as_model_conversion/ 下的模型目录
   "device_id": "..." // 从 NVS g_camera_id 自动读取
 }
 ```

@@ -12,13 +12,13 @@ MS500 AI 模型自动烧录工具（全新版本）
 
 使用前准备:
 1. 准备模型文件:
-   - 在 as_model_conversion/ 目录下创建模型目录 (例如: as_model_conversion/person_alerm/)
+   - 在 as_model_conversion/ 目录下创建模型目录 (例如: as_model_conversion/ped_alerm/)
    - 将 packerOut.zip 文件放入该目录
    - (可选) 如需替换 network_info.txt，也放入该目录
 
 2. 配置文件:
    - 编辑 as_model_conversion/model_config.json 文件
-   - 设置 model_dir (模型目录名，如 "person_alerm")
+   - 设置 model_dir (模型目录名，如 "ped_alerm")
    - device_id 会自动从 NVS 中的 u_camera_id 获取
 
 3. 设备连接:

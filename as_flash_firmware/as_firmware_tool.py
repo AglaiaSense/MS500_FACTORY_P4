@@ -29,8 +29,8 @@ FLASH_FREQ = "80m"
 FLASH_SIZE = "16MB"
 
 # 固件文件目录配置
-BIN_TYPE = "ped_alarm"  # 可修改为不同的固件类型
-# BIN_TYPE = "sdk_uvc"  # 可修改为不同的固件类型
+# BIN_TYPE = "ped_alarm"  # 可修改为不同的固件类型
+BIN_TYPE = "ms500_uvc"  # 可修改为不同的固件类型
 BUILD_DIR = os.path.join(os.path.dirname(__file__), "bin_type", BIN_TYPE)
 PARTITIONS_CSV = os.path.join(BUILD_DIR, "partitions.csv")
 
