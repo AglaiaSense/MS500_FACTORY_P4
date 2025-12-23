@@ -28,7 +28,7 @@ MS500 AI 模型自动烧录工具（全新版本）
 
 使用方法:
     cd pc_client/python_factory
-    python as_model_flash.py
+    python as_factory_model.py
 """
 
 import os

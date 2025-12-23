@@ -243,11 +243,11 @@ def main(port, model_temp_dir):
 
 if __name__ == "__main__":
     # 示例：从命令行参数获取串口号和模型 temp 目录
-    # 用法: python as_model_flash.py <port> <model_temp_dir>
+    # 用法: python as_factory_model.py <port> <model_temp_dir>
     if len(sys.argv) < 3:
-        print("Usage: python as_model_flash.py <port> <model_temp_dir>")
+        print("Usage: python as_factory_model.py <port> <model_temp_dir>")
         print("\nExample:")
-        print("  python as_model_flash.py COM4 temp/ped_alerm")
+        print("  python as_factory_model.py COM4 temp/ped_alerm")
         sys.exit(1)
 
     port_arg = sys.argv[1]

@@ -230,7 +230,7 @@ python as_flash_firmware/as_firmware_tool.py
 
 ```bash
 # 自动化 AI 模型烧录
-python as_model_flash.py
+python as_factory_model.py
 
 # 前提条件：
 #   1. 模型文件位于 as_model_conversion/{model_dir}/packerOut.zip
