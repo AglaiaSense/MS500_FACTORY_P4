@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 模型烧录模块
-功能：创建 storage_dl.bin 并烧录到设备
+功能：使用 spiffs_dl 目录创建 storage_dl.bin 并烧录到设备
 """
 
 import os
@@ -43,83 +43,66 @@ def init_temp_dir():
     """初始化临时目录"""
     if not os.path.exists(TEMP_DIR):
         os.makedirs(TEMP_DIR)
-        print(f"Create temp directory: {os.path.abspath(TEMP_DIR)}")
+        print(f"创建临时目录: {os.path.abspath(TEMP_DIR)}")
 
 
 #------------------  步骤3: 创建 storage_dl.bin  ------------------
 
-def create_storage_dl_bin(model_temp_dir):
+def create_storage_dl_bin(spiffs_dl_dir):
     """
-    创建 storage_dl.bin 文件（FAT 文件系统镜像）
+    使用 spiffs_dl 目录创建 storage_dl.bin 文件（FAT 文件系统镜像）
 
-    Args:
-        model_temp_dir: 模型文件解压后的 temp 目录
+    参数:
+        spiffs_dl_dir: spiffs_dl 目录路径（包含 network.fpk 和 network_info.txt）
 
-    Returns:
+    返回:
         生成的 storage_dl.bin 文件路径，失败返回 None
     """
     print("\n" + "=" * 60)
-    print("Step 3: Create storage_dl.bin")
+    print("步骤 3: 创建 storage_dl.bin")
     print("=" * 60)
 
     try:
-        # 查找 temp 目录下的所有文件
-        temp_path = Path(model_temp_dir)
-        if not temp_path.exists():
-            print(f"\nError: Temp directory not found: {model_temp_dir}")
+        # 验证 spiffs_dl 目录存在
+        if not os.path.exists(spiffs_dl_dir):
+            print(f"\n错误: spiffs_dl 目录未找到: {spiffs_dl_dir}")
             return None
 
-        print(f"\nScanning temp directory: {model_temp_dir}")
+        print(f"\nspiffs_dl 目录: {spiffs_dl_dir}")
 
-        # 创建临时目录用于存放模型文件
+        # 创建 FAT 文件系统目录结构
+        # 目标结构: storage_dl_content/dnn/文件
         storage_dir = os.path.join(TEMP_DIR, "storage_dl_content")
         if os.path.exists(storage_dir):
             shutil.rmtree(storage_dir)
         os.makedirs(storage_dir, exist_ok=True)
 
-        # 复制 temp 目录下的所有文件到 storage_dir/dnn/ 目录
-        # 目标结构: storage_dl_content/dnn/文件
-        # 原因: FAT 文件系统使用 8.3 格式，目录名 "dnn" 符合限制（3字符）
-
         # 创建 dnn 子目录
         dnn_dir = os.path.join(storage_dir, "dnn")
         os.makedirs(dnn_dir, exist_ok=True)
 
+        # 复制 spiffs_dl 目录下的所有文件到 dnn 目录
         copied_count = 0
-        for item in temp_path.rglob("*"):
+        for item in Path(spiffs_dl_dir).iterdir():
             if item.is_file():
-                filename = item.name
-                dest_path = os.path.join(dnn_dir, filename)
-
-                # 如果文件名已存在，添加后缀避免冲突
-                if os.path.exists(dest_path):
-                    counter = 1
-                    base_name = item.stem
-                    extension = item.suffix
-                    while os.path.exists(dest_path):
-                        new_name = f"{base_name}_{counter}{extension}"
-                        dest_path = os.path.join(dnn_dir, new_name)
-                        counter += 1
-                    filename = os.path.basename(dest_path)
-
-                # 复制文件
+                dest_path = os.path.join(dnn_dir, item.name)
                 shutil.copy2(item, dest_path)
-                print(f"  Copied: {item.name} -> dnn/{filename}")
+                print(f"  已复制: {item.name} -> dnn/{item.name}")
                 copied_count += 1
 
         if copied_count == 0:
-            print("\nError: No files found in temp directory")
+            print("\n错误: spiffs_dl 目录中没有文件")
             return None
 
-        print(f"\n✓ Total {copied_count} files copied to {storage_dir}")
+        print(f"\n✓ 共 {copied_count} 个文件复制到 {storage_dir}")
 
         # 生成 storage_dl.bin 文件
         storage_dl_bin = os.path.join(TEMP_DIR, "storage_dl.bin")
 
         # 检查 FATFS 生成工具是否存在
         if not os.path.exists(FATFS_GEN_TOOL):
-            print(f"\nError: FATFS generation tool not found: {FATFS_GEN_TOOL}")
-            raise RuntimeError("FATFS generation tool not found")
+            print(f"\n错误: FATFS 生成工具未找到: {FATFS_GEN_TOOL}")
+            raise RuntimeError("FATFS 生成工具未找到")
 
         # 使用 wl_fatfsgen.py 生成 FAT 镜像
         # 注意：使用 --long_name_support 启用长文件名支持（LFN）
@@ -133,28 +116,28 @@ def create_storage_dl_bin(model_temp_dir):
             "--long_name_support",  # 启用长文件名支持
         ]
 
-        print(f"\nExecute command: {' '.join(cmd)}")
+        print(f"\n执行命令: {' '.join(cmd)}")
         result = subprocess.run(cmd, capture_output=True, text=True)
 
         if result.returncode != 0:
-            print("\nError: Failed to generate storage_dl.bin")
+            print("\n错误: 生成 storage_dl.bin 失败")
             print(f"STDOUT: {result.stdout}")
             print(f"STDERR: {result.stderr}")
-            raise RuntimeError("Failed to generate storage_dl.bin")
+            raise RuntimeError("生成 storage_dl.bin 失败")
 
-        print(f"✓ storage_dl.bin generated: {storage_dl_bin}")
+        print(f"✓ storage_dl.bin 已生成: {storage_dl_bin}")
 
         # 验证文件
         if os.path.exists(storage_dl_bin):
             file_size = os.path.getsize(storage_dl_bin)
-            print(f"  File size: {file_size} bytes ({file_size / 1024 / 1024:.2f} MB)")
+            print(f"  文件大小: {file_size} 字节 ({file_size / 1024 / 1024:.2f} MB)")
         else:
-            raise RuntimeError("storage_dl.bin file not generated")
+            raise RuntimeError("storage_dl.bin 文件未生成")
 
         return storage_dl_bin
 
     except Exception as e:
-        print(f"\nError: {e}")
+        print(f"\n错误: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -166,35 +149,35 @@ def flash_storage_dl_bin(port, storage_dl_bin):
     """
     烧录 storage_dl.bin 到 Flash 指定分区
 
-    Args:
+    参数:
         port: 串口号
         storage_dl_bin: storage_dl.bin 文件路径
 
-    Returns:
+    返回:
         烧录是否成功
     """
     print("\n" + "=" * 60)
-    print("Step 4: Flash storage_dl.bin to Flash")
+    print("步骤 4: 烧录 storage_dl.bin 到 Flash")
     print("=" * 60)
 
     try:
         cmd = [ESPTOOL, "--port", port, "--baud", BAUD_RATE, "write_flash", STORAGE_DL_OFFSET, storage_dl_bin]
-        print(f"Execute command: {' '.join(cmd)}")
-        print(f"Using baud rate: {BAUD_RATE}")
-        print("Flashing... (this may take a while)\n")
+        print(f"执行命令: {' '.join(cmd)}")
+        print(f"使用波特率: {BAUD_RATE}")
+        print("正在烧录... (可能需要一段时间)\n")
 
         # 不捕获输出，让 esptool 的进度信息实时显示
         result = subprocess.run(cmd)
 
         if result.returncode != 0:
-            print("\nError: Failed to flash storage_dl.bin")
+            print("\n错误: 烧录 storage_dl.bin 失败")
             return False
 
-        print("\n✓ storage_dl.bin flashed successfully!")
+        print("\n✓ storage_dl.bin 烧录成功!")
         return True
 
     except Exception as e:
-        print(f"\nError: {e}")
+        print(f"\n错误: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -202,15 +185,15 @@ def flash_storage_dl_bin(port, storage_dl_bin):
 
 #------------------  主函数  ------------------
 
-def main(port, model_temp_dir):
+def main(port, spiffs_dl_dir):
     """
     主函数 - 创建并烧录 storage_dl.bin
 
-    Args:
+    参数:
         port: 串口号
-        model_temp_dir: 模型文件 temp 目录
+        spiffs_dl_dir: spiffs_dl 目录路径
 
-    Returns:
+    返回:
         成功返回 True，失败返回 False
     """
     try:
@@ -218,40 +201,46 @@ def main(port, model_temp_dir):
         init_temp_dir()
 
         # 步骤3: 创建 storage_dl.bin
-        storage_dl_bin = create_storage_dl_bin(model_temp_dir)
+        storage_dl_bin = create_storage_dl_bin(spiffs_dl_dir)
         if not storage_dl_bin:
-            print("\n✗ Failed to create storage_dl.bin")
+            print("\n✗ 创建 storage_dl.bin 失败")
             return False
 
         # 步骤4: 烧录 storage_dl.bin
         if not flash_storage_dl_bin(port, storage_dl_bin):
-            print("\n✗ Failed to flash storage_dl.bin")
+            print("\n✗ 烧录 storage_dl.bin 失败")
             return False
 
-        print("\n✓ Model flash completed successfully")
+        print("\n✓ 模型烧录完成")
         return True
 
     except KeyboardInterrupt:
-        print("\n\nOperation interrupted by user")
+        print("\n\n操作被用户中断")
         return False
     except Exception as e:
-        print(f"\n\nError: {e}")
+        print(f"\n\n错误: {e}")
         import traceback
         traceback.print_exc()
         return False
 
 
 if __name__ == "__main__":
-    # 示例：从命令行参数获取串口号和模型 temp 目录
-    # 用法: python as_factory_model.py <port> <model_temp_dir>
-    if len(sys.argv) < 3:
-        print("Usage: python as_factory_model.py <port> <model_temp_dir>")
-        print("\nExample:")
-        print("  python as_factory_model.py COM4 temp/ped_alerm")
-        sys.exit(1)
+    # 方式1：使用变量传参（直接运行时修改这里的变量）
+    port = "COM4"
+    spiffs_dl_dir = "as_model_conversion/temp/100B50501A2101059064011000000000/spiffs_dl"
 
-    port_arg = sys.argv[1]
-    model_temp_dir_arg = sys.argv[2]
-
-    result = main(port_arg, model_temp_dir_arg)
+    result = main(port, spiffs_dl_dir)
     sys.exit(0 if result else 1)
+
+    # 方式2：使用命令行参数（如果需要命令行调用，注释掉上面，取消下面的注释）
+    # if len(sys.argv) < 3:
+    #     print("使用方法: python as_model_flash.py <port> <spiffs_dl_dir>")
+    #     print("\n示例:")
+    #     print("  python as_model_flash.py COM4 as_model_conversion/temp/xxx/spiffs_dl")
+    #     sys.exit(1)
+    #
+    # port_arg = sys.argv[1]
+    # spiffs_dl_dir_arg = sys.argv[2]
+    #
+    # result = main(port_arg, spiffs_dl_dir_arg)
+    # sys.exit(0 if result else 1)

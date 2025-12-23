@@ -278,34 +278,48 @@ def flash_firmware(port):
     return True
 
 
-#------------------ 主函数 ------------------
+#------------------ 可被外部调用的主函数 ------------------
 
-def main():
+def flash_firmware_with_config(port, bin_type):
     """
-    固件烧录主流程
+    根据指定的固件类型和串口烧录固件（可被外部调用）
+
+    参数:
+        port: 串口号（如 "COM4"）
+        bin_type: 固件类型（如 "ms500_uvc", "sdk_uvc_tw_plate"）
+
+    返回:
+        成功返回 True，失败返回 False
     """
     print("=" * 60)
     print("  MS500-P4 固件烧录工具")
     print("=" * 60)
     print(f"  芯片型号: {CHIP_TYPE}")
-    print(f"  串口端口: {PORT}")
+    print(f"  串口端口: {port}")
     print(f"  波特率: {BAUDRATE}")
     print(f"  Flash 大小: {FLASH_SIZE}")
-    print(f"  固件类型: {BIN_TYPE}")
+    print(f"  固件类型: {bin_type}")
     print("=" * 60)
 
     try:
+        # 构建固件目录路径
+        bin_dir = os.path.join(os.path.dirname(__file__), "bin_type", bin_type)
+
+        if not os.path.exists(bin_dir):
+            print(f"\n错误: 固件目录不存在: {bin_dir}")
+            return False
+
         # 步骤0: 加载烧录配置
-        load_flash_config(BUILD_DIR)
+        load_flash_config(bin_dir)
 
         # 步骤1: 检查固件文件
         check_bin_files()
 
         # 步骤2: 测试串口连接
-        test_connection(PORT)
+        test_connection(port)
 
         # 步骤3: 烧录固件
-        flash_firmware(PORT)
+        flash_firmware(port)
 
         # 完成
         print("\n" + "=" * 60)
@@ -316,12 +330,25 @@ def main():
         print("  - 可以使用串口监视器查看启动日志")
         print("=" * 60)
 
+        return True
+
     except KeyboardInterrupt:
         print("\n\n操作被用户中断")
-        sys.exit(1)
+        return False
     except Exception as e:
         print(f"\n\n错误: {e}")
-        sys.exit(1)
+        import traceback
+        traceback.print_exc()
+        return False
+
+
+#------------------ 主函数 ------------------
+
+def main():
+    """
+    固件烧录主流程（使用全局配置）
+    """
+    return flash_firmware_with_config(PORT, BIN_TYPE)
 
 
 if __name__ == "__main__":

@@ -1,15 +1,31 @@
-- [✓] **优化as_model_conversion** (2025-12-23)
-  - 删除 model_config.json，不再使用配置文件
-  - 重构 as_model_auth.py：
-    - type_model 目录仅存放模型文件（packerOut.zip 和 network_info.txt）
-    - 外部接口改为 device_id 和 model_type 两个参数
-    - packerOut.zip 路径自动拼接：as_model_conversion/type_model/{model_type}/packerOut.zip
-    - 工作目录改为：as_model_conversion/temp/{device_id}/
-    - output 目录：temp/{device_id}/output
-    - spiffs_dl 目录：temp/{device_id}/spiffs_dl
-  - 实现 5 步分层处理：
-    1. 创建工作目录
-    2. 模型转换（调用 model_convert）
-    3. ZIP 解压缩
-    4. 复制烧录文件（network.fpk + network_info.txt）
-    5. 组装并验证 spiffs_dl 目录
+- [✓] **优化 as_factory_model.py 和 as_model_flash 模块** (2025-12-23)
+  - 修改 as_model_down.py：
+    - 从 NVS 读取 g_camera_id 作为 device_id
+    - 调用 as_model_conversion/as_model_auth.py 生成模型
+    - 返回 spiffs_dl 目录路径
+  - 修改 as_model_flash.py：
+    - 使用 spiffs_dl 目录创建 storage_dl.bin
+    - 将模型文件复制到 FAT 文件系统的 dnn 目录
+    - 烧录 storage_dl.bin 到设备
+  - 重构 as_factory_model.py：
+    - 步骤1: 调用 as_model_down.py 获取 device_id 并生成模型
+    - 步骤2: 调用 as_model_flash.py 创建并烧录 storage_dl.bin
+    - 步骤3: 调用 as_model_flag.py 添加 is_model_update=1 并更新 NVS
+
+- [✓] **创建 as_factory_firmware.py 和优化固件烧录模块** (2025-12-23)
+
+  - 修改 as_firmware_tool.py：
+    - 新建 flash_firmware_with_config() 函数可被外部调用
+    - 接受 port 和 bin_type 参数
+  - 新建 as_factory_firmware.py：
+    - 调用 as_firmware_tool.py 的 flash_firmware_with_config()
+    - 支持传入 BIN_TYPE 和 PORT 参数
+    - 可独立运行或被外部调用
+
+- [✓] **创建工厂生产主程序 main.py** (2025-12-23)
+  - 配置基本参数：PORT, BIN_TYPE, MODEL_TYPE
+  - 调用流程：
+    - 步骤1: 调用 as_factory_info.py 进行参数注册
+    - 步骤2: 调用 as_factory_firmware.py 进行固件烧录
+    - 步骤3: 调用 as_factory_model.py 进行模型烧录
+  - 所有模块都支持外部函数调用接口

@@ -1,0 +1,8 @@
+{
+  "server_url": "http://192.168.0.6:8000",
+  "c_sn": "CA500-MIPI-zlxc-0054",
+  "u_sn": "MS500-H120-EP-zlcu-0054",
+  "PORT": "COM4",
+  "BIN_TYPE": "ms500_uvc",
+  "MODEL_TYPE": "ped_alerm"
+}
