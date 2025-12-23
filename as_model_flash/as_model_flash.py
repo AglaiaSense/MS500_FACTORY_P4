@@ -16,25 +16,24 @@ from esp_components import (
     get_esp_idf_python,
     get_fatfs_gen_tool,
     get_esptool,
+    get_baud_rate,
 )
+
+# 导入分区工具
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "as_flash_firmware"))
+from as_spifs_partition import get_storage_dl_info
 
 
 #------------------  配置区  ------------------
 
-# 烧录波特率
-BAUD_RATE = "115200"
-
 # 临时文件目录
 TEMP_DIR = "temp"
-
-# 分区配置 - storage_dl 分区
-STORAGE_DL_OFFSET = "0x8A0000"  # storage_dl 分区偏移地址
-STORAGE_DL_SIZE = "0x700000"  # 7MB
 
 # 使用 esp_components 提供的工具路径
 ESP_IDF_PYTHON = get_esp_idf_python()
 FATFS_GEN_TOOL = get_fatfs_gen_tool()
 ESPTOOL = get_esptool()
+BAUD_RATE = get_baud_rate()
 
 
 #------------------  初始化  ------------------
@@ -48,12 +47,13 @@ def init_temp_dir():
 
 #------------------  步骤3: 创建 storage_dl.bin  ------------------
 
-def create_storage_dl_bin(spiffs_dl_dir):
+def create_storage_dl_bin(spiffs_dl_dir, bin_type):
     """
     使用 spiffs_dl 目录创建 storage_dl.bin 文件（FAT 文件系统镜像）
 
     参数:
         spiffs_dl_dir: spiffs_dl 目录路径（包含 network.fpk 和 network_info.txt）
+        bin_type: 固件类型（用于获取分区信息）
 
     返回:
         生成的 storage_dl.bin 文件路径，失败返回 None
@@ -63,6 +63,13 @@ def create_storage_dl_bin(spiffs_dl_dir):
     print("=" * 60)
 
     try:
+        # 获取 storage_dl 分区信息
+        storage_dl_info = get_storage_dl_info(bin_type)
+        if not storage_dl_info:
+            raise RuntimeError(f"Failed to get storage_dl partition info for bin_type: {bin_type}")
+
+        storage_dl_size = storage_dl_info["size"]
+        print(f"\nstorage_dl partition size (from {bin_type}): {storage_dl_size}")
         # 验证 spiffs_dl 目录存在
         if not os.path.exists(spiffs_dl_dir):
             print(f"\n错误: spiffs_dl 目录未找到: {spiffs_dl_dir}")
@@ -112,7 +119,7 @@ def create_storage_dl_bin(spiffs_dl_dir):
             FATFS_GEN_TOOL,
             storage_dir,  # 输入目录
             "--output_file", storage_dl_bin,  # 输出文件
-            "--partition_size", STORAGE_DL_SIZE,  # 分区大小
+            "--partition_size", storage_dl_size,  # 分区大小（从分区表获取）
             "--long_name_support",  # 启用长文件名支持
         ]
 
@@ -145,13 +152,14 @@ def create_storage_dl_bin(spiffs_dl_dir):
 
 #------------------  步骤4: 烧录 storage_dl.bin  ------------------
 
-def flash_storage_dl_bin(port, storage_dl_bin):
+def flash_storage_dl_bin(port, storage_dl_bin, bin_type):
     """
     烧录 storage_dl.bin 到 Flash 指定分区
 
     参数:
         port: 串口号
         storage_dl_bin: storage_dl.bin 文件路径
+        bin_type: 固件类型（用于获取分区信息）
 
     返回:
         烧录是否成功
@@ -161,7 +169,15 @@ def flash_storage_dl_bin(port, storage_dl_bin):
     print("=" * 60)
 
     try:
-        cmd = [ESPTOOL, "--port", port, "--baud", BAUD_RATE, "write_flash", STORAGE_DL_OFFSET, storage_dl_bin]
+        # 获取 storage_dl 分区信息
+        storage_dl_info = get_storage_dl_info(bin_type)
+        if not storage_dl_info:
+            raise RuntimeError(f"Failed to get storage_dl partition info for bin_type: {bin_type}")
+
+        storage_dl_offset = storage_dl_info["offset"]
+        print(f"\nstorage_dl partition offset (from {bin_type}): {storage_dl_offset}")
+
+        cmd = [ESPTOOL, "--port", port, "--baud", BAUD_RATE, "write_flash", storage_dl_offset, storage_dl_bin]
         print(f"执行命令: {' '.join(cmd)}")
         print(f"使用波特率: {BAUD_RATE}")
         print("正在烧录... (可能需要一段时间)\n")
@@ -185,13 +201,14 @@ def flash_storage_dl_bin(port, storage_dl_bin):
 
 #------------------  主函数  ------------------
 
-def main(port, spiffs_dl_dir):
+def main(port, spiffs_dl_dir, bin_type):
     """
     主函数 - 创建并烧录 storage_dl.bin
 
     参数:
         port: 串口号
         spiffs_dl_dir: spiffs_dl 目录路径
+        bin_type: 固件类型（用于获取分区信息）
 
     返回:
         成功返回 True，失败返回 False
@@ -201,13 +218,13 @@ def main(port, spiffs_dl_dir):
         init_temp_dir()
 
         # 步骤3: 创建 storage_dl.bin
-        storage_dl_bin = create_storage_dl_bin(spiffs_dl_dir)
+        storage_dl_bin = create_storage_dl_bin(spiffs_dl_dir, bin_type)
         if not storage_dl_bin:
             print("\n✗ 创建 storage_dl.bin 失败")
             return False
 
         # 步骤4: 烧录 storage_dl.bin
-        if not flash_storage_dl_bin(port, storage_dl_bin):
+        if not flash_storage_dl_bin(port, storage_dl_bin, bin_type):
             print("\n✗ 烧录 storage_dl.bin 失败")
             return False
 
@@ -228,19 +245,21 @@ if __name__ == "__main__":
     # 方式1：使用变量传参（直接运行时修改这里的变量）
     port = "COM4"
     spiffs_dl_dir = "as_model_conversion/temp/100B50501A2101059064011000000000/spiffs_dl"
+    bin_type = "sdk_uvc_tw_plate"  # 固件类型
 
-    result = main(port, spiffs_dl_dir)
+    result = main(port, spiffs_dl_dir, bin_type)
     sys.exit(0 if result else 1)
 
     # 方式2：使用命令行参数（如果需要命令行调用，注释掉上面，取消下面的注释）
-    # if len(sys.argv) < 3:
-    #     print("使用方法: python as_model_flash.py <port> <spiffs_dl_dir>")
+    # if len(sys.argv) < 4:
+    #     print("使用方法: python as_model_flash.py <port> <spiffs_dl_dir> <bin_type>")
     #     print("\n示例:")
-    #     print("  python as_model_flash.py COM4 as_model_conversion/temp/xxx/spiffs_dl")
+    #     print("  python as_model_flash.py COM4 as_model_conversion/temp/xxx/spiffs_dl sdk_uvc_tw_plate")
     #     sys.exit(1)
     #
     # port_arg = sys.argv[1]
     # spiffs_dl_dir_arg = sys.argv[2]
+    # bin_type_arg = sys.argv[3]
     #
-    # result = main(port_arg, spiffs_dl_dir_arg)
+    # result = main(port_arg, spiffs_dl_dir_arg, bin_type_arg)
     # sys.exit(0 if result else 1)

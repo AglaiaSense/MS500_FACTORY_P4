@@ -10,7 +10,11 @@ import subprocess
 
 # 导入 ESP 组件工具
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from esp_components import get_esptool
+from esp_components import get_esptool, get_baud_rate
+
+# 导入分区工具
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "as_flash_firmware"))
+from as_spifs_partition import get_nvs_info
 
 # 导入 as_nvs_flash 模块
 from as_nvs_flash import (
@@ -22,14 +26,9 @@ from as_nvs_flash import (
 
 #------------------  配置区  ------------------
 
-# 烧录波特率
-BAUD_RATE = "115200"
-
-# 分区配置 - NVS 分区
-NVS_OFFSET = "0x9000"  # NVS 分区偏移地址
-
 # 使用 esp_components 提供的工具路径
 ESPTOOL = get_esptool()
+BAUD_RATE = get_baud_rate()
 
 
 #------------------  步骤5: 更新 NVS 添加 is_model_update 参数  ------------------
@@ -88,13 +87,14 @@ def update_nvs_with_model_flag():
 
 #------------------  步骤6: 烧录新的 NVS bin 文件  ------------------
 
-def flash_nvs_bin(port, nvs_bin):
+def flash_nvs_bin(port, nvs_bin, bin_type):
     """
     烧录新的 NVS bin 文件到 Flash
 
     Args:
         port: 串口号
         nvs_bin: NVS bin 文件路径
+        bin_type: 固件类型（用于获取分区信息）
 
     Returns:
         烧录是否成功
@@ -104,9 +104,17 @@ def flash_nvs_bin(port, nvs_bin):
     print("=" * 60)
 
     try:
-        cmd = [ESPTOOL, "--port", port, "--baud", BAUD_RATE, "write_flash", NVS_OFFSET, nvs_bin]
+        # 获取 NVS 分区信息
+        nvs_info = get_nvs_info(bin_type)
+        if not nvs_info:
+            raise RuntimeError(f"Failed to get NVS partition info for bin_type: {bin_type}")
+
+        nvs_offset = nvs_info["offset"]
+        print(f"\nNVS partition offset (from {bin_type}): {nvs_offset}")
+
+        # NVS 文件较小，使用默认波特率更稳定
+        cmd = [ESPTOOL, "--port", port, "write_flash", nvs_offset, nvs_bin]
         print(f"执行命令: {' '.join(cmd)}")
-        print(f"使用波特率: {BAUD_RATE}")
         print("正在烧录 NVS...\n")
 
         # 不捕获输出，让 esptool 的进度信息实时显示
@@ -171,12 +179,13 @@ def reset_esp32(port):
 
 #------------------  主函数  ------------------
 
-def main(port, reset_device=True):
+def main(port, bin_type, reset_device=True):
     """
     主函数 - 更新 NVS 标志并烧录，可选重启设备
 
     Args:
         port: 串口号
+        bin_type: 固件类型（用于获取分区信息）
         reset_device: 是否在完成后重启设备（默认 True）
 
     Returns:
@@ -190,7 +199,7 @@ def main(port, reset_device=True):
             return False
 
         # 步骤6: 烧录新的 NVS bin
-        if not flash_nvs_bin(port, nvs_bin):
+        if not flash_nvs_bin(port, nvs_bin, bin_type):
             print("\n✗ 烧录新的 NVS bin 失败")
             return False
 
@@ -214,17 +223,18 @@ def main(port, reset_device=True):
 
 
 if __name__ == "__main__":
-    # 示例：从命令行参数获取串口号
-    # 用法: python as_model_flag.py <port> [--no-reset]
-    if len(sys.argv) < 2:
-        print("用法: python as_model_flag.py <port> [--no-reset]")
+    # 示例：从命令行参数获取串口号和固件类型
+    # 用法: python as_model_flag.py <port> <bin_type> [--no-reset]
+    if len(sys.argv) < 3:
+        print("用法: python as_model_flag.py <port> <bin_type> [--no-reset]")
         print("\n示例:")
-        print("  python as_model_flag.py COM4")
-        print("  python as_model_flag.py COM4 --no-reset")
+        print("  python as_model_flag.py COM4 sdk_uvc_tw_plate")
+        print("  python as_model_flag.py COM4 sdk_uvc_tw_plate --no-reset")
         sys.exit(1)
 
     port_arg = sys.argv[1]
+    bin_type_arg = sys.argv[2]
     reset_arg = "--no-reset" not in sys.argv
 
-    result = main(port_arg, reset_device=reset_arg)
+    result = main(port_arg, bin_type_arg, reset_device=reset_arg)
     sys.exit(0 if result else 1)

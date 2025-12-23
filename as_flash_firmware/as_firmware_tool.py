@@ -7,7 +7,7 @@ import csv
 # 添加父目录到路径以导入 esp_components
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
-from esp_components import get_esptool
+from esp_components import get_esptool, get_baud_rate, test_port_connection
 
 # 设置 Windows 控制台编码为 UTF-8
 if sys.platform == "win32":
@@ -17,10 +17,10 @@ if sys.platform == "win32":
 # ========== 配置区 ==========
 # 使用 esp_components 提供的 esptool 路径
 ESPTOOL = get_esptool()
+BAUD_RATE = get_baud_rate()
 
 # ESP32-P4 串口配置
 PORT = "COM4"  # 修改为实际端口
-BAUDRATE = "460800"
 
 # ESP32-P4 Flash 配置
 CHIP_TYPE = "esp32p4"
@@ -154,52 +154,8 @@ def check_bin_files(bin_dir):
     return True
 
 
-#------------------ 测试串口连接 ------------------
-
-def test_connection(port):
-    """
-    测试串口连接并读取芯片信息
-    """
-    print("\n" + "=" * 60)
-    print("步骤2: 测试串口连接")
-    print("=" * 60)
-
-    cmd = [ESPTOOL, "--port", port, "chip_id"]
-    print(f"执行命令: {' '.join(cmd)}")
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        print("\n" + "!" * 60)
-        print("错误: 无法连接到设备")
-        print("!" * 60)
-        print("\n请检查:")
-        print(f"  1. 设备是否正确连接到 {port}")
-        print("  2. COM 端口号是否正确")
-        print("  3. 设备是否处于下载模式（Bootloader）")
-        print("  4. 串口是否被其他程序占用")
-
-        # 打印详细错误信息
-        print("\n" + "-" * 60)
-        print("详细错误信息:")
-        print("-" * 60)
-        if result.stdout.strip():
-            print(result.stdout)
-        if result.stderr.strip():
-            print(result.stderr)
-        else:
-            print("(无错误详情)")
-        print("-" * 60)
-
-        raise RuntimeError("串口连接失败")
-
-    # 打印连接成功信息
-    for line in result.stdout.splitlines():
-        if "Detecting chip type" in line or "Chip is" in line or "MAC:" in line:
-            print(f"  {line.strip()}")
-
-    print("\n✓ 串口连接测试成功")
-    return True
+#------------------ 测试串口连接（使用 esp_components 中的统一函数）------------------
+# test_port_connection 函数已从 esp_components.esp_tools 导入
 
 
 #------------------ 烧录固件 ------------------
@@ -216,7 +172,7 @@ def flash_firmware(port,bin_dir):
     cmd = [
         ESPTOOL,
         "-p", port,
-        "-b", BAUDRATE,
+        "-b", BAUD_RATE,
         "--before", "default_reset",
         "--after", "hard_reset",
         "--chip", CHIP_TYPE,
@@ -288,7 +244,7 @@ def flash_firmware_with_config(port, bin_type):
     print("=" * 60)
     print(f"  芯片型号: {CHIP_TYPE}")
     print(f"  串口端口: {port}")
-    print(f"  波特率: {BAUDRATE}")
+    print(f"  波特率: {BAUD_RATE}")
     print(f"  Flash 大小: {FLASH_SIZE}")
     print(f"  固件类型: {bin_type}")
     print("=" * 60)
@@ -308,7 +264,7 @@ def flash_firmware_with_config(port, bin_type):
         check_bin_files(bin_dir)
 
         # 步骤2: 测试串口连接
-        test_connection(port)
+        test_port_connection(port)
 
         # 步骤3: 烧录固件
         flash_firmware(port,bin_dir)

@@ -9,6 +9,8 @@ from .esp_tools import (
     get_fatfs_gen_tool,
     get_esptool,
     get_nvs_gen_module,
+    get_baud_rate,
+    test_port_connection,
 )
 
 __all__ = [
@@ -17,4 +19,6 @@ __all__ = [
     "get_fatfs_gen_tool",
     "get_esptool",
     "get_nvs_gen_module",
+    "get_baud_rate",
+    "test_port_connection",
 ]

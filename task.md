@@ -1,1 +1,6 @@
-- [✓] **优化 as_service_register.py** (2025-12-23)
+- [✓] **优化 esp_tools.py：统一 BAUD_RATE 配置和串口测试函数** (2025-12-23)
+- [✓] **创建分区工具并优化模型相关模块使用动态分区信息** (2025-12-23)
+- [✓] **优化 esp_components/__init__.py：导出 test_port_connection 和 get_baud_rate 函数** (2025-12-23)
+- [✓] **修复 as_factory_model.py：添加 bin_type 参数传递** (2025-12-23)
+- [✓] **修复 as_model_flag.py NVS 烧录失败：移除高波特率参数** (2025-12-23)
+- [✓] **优化 NVS 相关模块使用动态分区配置** (2025-12-23)

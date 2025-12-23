@@ -19,13 +19,10 @@ from as_nvs_flash import (
 # 使用 esp_components 提供的 esptool 路径
 ESPTOOL = get_esptool()
 PORT = "COM4"  # 修改为实际端口
+BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
 
 # 临时文件目录
 TEMP_DIR = "temp"
-
-# NVS 分区配置
-NVS_OFFSET = "0x9000"
-NVS_SIZE = "0x10000"  # 64KB
 
 
 #------------------ 临时文件清理 ------------------
@@ -198,19 +195,28 @@ def request_server(mac, existing_info=None):
 
 #------------------ 主流程 ------------------
 
-def main():
+def main(port=None, bin_type=None):
     """
     工厂生产流程主函数
-    """
 
+    Args:
+        port: 串口号，默认使用全局配置
+        bin_type: 固件类型，默认使用全局配置
+    """
+    # 使用传入的参数或全局配置
+    use_port = port if port is not None else PORT
+    use_bin_type = bin_type if bin_type is not None else BIN_TYPE
 
     print("=" * 60)
     print("  MS500-EP 工厂生产程序")
     print("=" * 60)
+    print(f"串口: {use_port}")
+    print(f"固件类型: {use_bin_type}")
+    print("=" * 60)
 
     try:
         # 步骤1：读取 MAC 和 NVS 数据
-        mac = read_flash_and_mac(PORT)
+        mac = read_flash_and_mac(use_port, use_bin_type)
 
         # 步骤2：检查 NVS 数据
         existing_info = check_nvs_data()
@@ -227,10 +233,10 @@ def main():
 
         # 步骤4：生成 NVS 数据（CSV 和 BIN）
         # 传入 existing_info 以保留原有参数（如 g_camera_id, wake_count 等）
-        generate_nvs_data(device_info, existing_nvs=existing_info)
+        generate_nvs_data(device_info, existing_nvs=existing_info, bin_type=use_bin_type)
 
         # 步骤5：烧录 NVS 数据
-        flash_nvs(PORT)
+        flash_nvs(use_port, use_bin_type)
 
         # 完成
         print("\n" + "=" * 60)

@@ -16,6 +16,10 @@ import subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from esp_components import get_esp_idf_python, get_nvs_tool_path, get_esptool
 
+# 导入分区工具
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "as_flash_firmware"))
+from as_spifs_partition import get_nvs_info
+
 # ========== 配置区 ==========
 # 使用 esp_components 提供的工具路径
 ESP_IDF_PYTHON = get_esp_idf_python()
@@ -28,10 +32,6 @@ TEMP_DIR = os.path.join(os.path.dirname(__file__), "temp")
 # 临时文件路径
 READ_BIN = os.path.join(TEMP_DIR, "read.bin")
 READ_CSV = os.path.join(TEMP_DIR, "read.csv")
-
-# NVS 分区配置
-NVS_OFFSET = "0x9000"
-NVS_SIZE = "0x10000"  # 64KB
 
 
 #------------------  初始化临时目录  ------------------
@@ -116,12 +116,13 @@ def convert_to_csv(nvs_output, output_file):
 #------------------  从设备读取 NVS 和 MAC  ------------------
 
 
-def read_flash_and_mac(port):
+def read_flash_and_mac(port, bin_type="sdk_uvc_tw_plate"):
     """
     从设备读取 NVS 分区数据并获取 MAC 地址
 
     Args:
         port: 串口号
+        bin_type: 固件类型（用于获取分区信息），默认 sdk_uvc_tw_plate
 
     Returns:
         MAC 地址字符串
@@ -133,7 +134,18 @@ def read_flash_and_mac(port):
     # 初始化临时目录
     init_temp_dir()
 
-    cmd = [ESPTOOL, "--port", port, "read_flash", NVS_OFFSET, NVS_SIZE, READ_BIN]
+    # 获取 NVS 分区信息
+    nvs_partition_info = get_nvs_info(bin_type)
+    if not nvs_partition_info:
+        raise RuntimeError(f"Failed to get NVS partition info for bin_type: {bin_type}")
+
+    nvs_offset = nvs_partition_info["offset"]
+    nvs_size = nvs_partition_info["size"]
+    print(f"NVS partition (from {bin_type}):")
+    print(f"  Offset: {nvs_offset}")
+    print(f"  Size:   {nvs_size}")
+
+    cmd = [ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, READ_BIN]
     print(f"执行命令: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -306,29 +318,33 @@ def main():
     主函数 - 可直接运行此文件进行 NVS 读取和解析
 
     使用方法:
-        python as_nvs_read.py [PORT]
+        python as_nvs_read.py [PORT] [BIN_TYPE]
 
     参数:
         PORT: 串口号，默认为 COM4
+        BIN_TYPE: 固件类型，默认为 sdk_uvc_tw_plate
 
     示例:
         python as_nvs_read.py
         python as_nvs_read.py COM5
+        python as_nvs_read.py COM4 ped_alarm
     """
     import sys
 
-    # 获取串口号参数
+    # 获取参数
     port = sys.argv[1] if len(sys.argv) > 1 else "COM4"
+    bin_type = sys.argv[2] if len(sys.argv) > 2 else "sdk_uvc_tw_plate"
 
     print("=" * 60)
     print("  NVS 读取和解析工具")
     print("=" * 60)
     print(f"串口: {port}")
+    print(f"固件类型: {bin_type}")
     print("=" * 60)
 
     try:
         # 读取 Flash 和 MAC 地址
-        mac = read_flash_and_mac(port)
+        mac = read_flash_and_mac(port, bin_type)
         print(f"\n✓ MAC 地址: {mac}")
 
         # 检查 NVS 数据

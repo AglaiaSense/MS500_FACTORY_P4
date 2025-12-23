@@ -39,16 +39,21 @@ PORT = "COM4"
 # 模型类型（对应 as_model_conversion/type_model/ 下的目录名）
 MODEL_TYPE = "ped_alerm"
 
+# 固件类型（对应 as_flash_firmware/bin_type/ 下的目录名）
+# BIN_TYPE = "sdk_uvc_tw_plate"
+BIN_TYPE = "ped_alarm"
+
 
 #------------------  主流程  ------------------
 
-def main(port=None, model_type=None):
+def main(port=None, model_type=None, bin_type=None):
     """
     主函数 - 完整的 AI 模型工厂烧录流程
 
     参数:
         port: 串口号，默认使用全局配置
         model_type: 模型类型，默认使用全局配置
+        bin_type: 固件类型，默认使用全局配置
 
     返回:
         成功返回 0，失败返回 1
@@ -56,12 +61,14 @@ def main(port=None, model_type=None):
     # 使用传入的参数或全局配置
     use_port = port if port is not None else PORT
     use_model_type = model_type if model_type is not None else MODEL_TYPE
+    use_bin_type = bin_type if bin_type is not None else BIN_TYPE
 
     print("=" * 80)
     print("  MS500 AI 模型工厂烧录工具")
     print("=" * 80)
     print(f"串口: {use_port}")
     print(f"模型类型: {use_model_type}")
+    print(f"固件类型: {use_bin_type}")
     print("=" * 80)
 
     try:
@@ -70,7 +77,7 @@ def main(port=None, model_type=None):
         print("【步骤 1/3】 获取 device_id 并生成模型")
         print("=" * 80)
 
-        spiffs_dl_dir = as_model_down.main(use_port, use_model_type)
+        spiffs_dl_dir = as_model_down.main(use_port, use_model_type, use_bin_type)
         if not spiffs_dl_dir:
             print("\n✗ 步骤 1 失败: 生成模型失败")
             return 1
@@ -83,7 +90,7 @@ def main(port=None, model_type=None):
         print("【步骤 2/3】 创建并烧录 storage_dl.bin")
         print("=" * 80)
 
-        if not as_model_flash.main(use_port, spiffs_dl_dir):
+        if not as_model_flash.main(use_port, spiffs_dl_dir, use_bin_type):
             print("\n✗ 步骤 2 失败: 烧录模型失败")
             return 1
 
@@ -94,7 +101,7 @@ def main(port=None, model_type=None):
         print("【步骤 3/3】 更新 NVS 标志并重启设备")
         print("=" * 80)
 
-        if not as_model_flag.main(use_port, reset_device=True):
+        if not as_model_flag.main(use_port, use_bin_type, reset_device=True):
             print("\n✗ 步骤 3 失败: 更新 NVS 标志失败")
             return 1
 
@@ -106,6 +113,7 @@ def main(port=None, model_type=None):
         print("=" * 80)
         print(f"串口: {use_port}")
         print(f"模型类型: {use_model_type}")
+        print(f"固件类型: {use_bin_type}")
         print(f"SPIFFS DL 目录: {spiffs_dl_dir}")
         print(f"is_model_update: 1")
         print("\n设备已重启。模型更新将在启动时处理。")

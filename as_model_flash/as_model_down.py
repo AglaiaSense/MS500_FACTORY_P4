@@ -12,6 +12,10 @@ import subprocess
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from esp_components import get_esptool
 
+# 导入分区工具
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "as_flash_firmware"))
+from as_spifs_partition import get_nvs_info
+
 # 导入 as_nvs_flash 模块
 from as_nvs_flash import (
     init_temp_dir as nvs_init_temp_dir,
@@ -26,21 +30,18 @@ from as_model_auth import generate_model_by_device_id
 
 #------------------  配置区  ------------------
 
-# 分区配置 - NVS 分区
-NVS_OFFSET = "0x9000"  # NVS 分区偏移地址
-NVS_SIZE = "0x10000"  # 64KB
-
 # 使用 esp_components 提供的工具路径
 ESPTOOL = get_esptool()
 
 #------------------  步骤1: 从 NVS 读取 g_camera_id  ------------------
 
-def read_device_id_from_nvs(port):
+def read_device_id_from_nvs(port, bin_type):
     """
     从设备的 NVS 中读取 g_camera_id 作为 device_id
 
     参数:
         port: 串口号
+        bin_type: 固件类型（用于获取分区信息）
 
     返回:
         device_id 字符串，失败返回 None
@@ -50,11 +51,22 @@ def read_device_id_from_nvs(port):
     print("=" * 60)
 
     try:
+        # 获取 NVS 分区信息
+        nvs_info = get_nvs_info(bin_type)
+        if not nvs_info:
+            raise RuntimeError(f"Failed to get NVS partition info for bin_type: {bin_type}")
+
+        nvs_offset = nvs_info["offset"]
+        nvs_size = nvs_info["size"]
+        print(f"\nNVS partition info (from {bin_type}):")
+        print(f"  Offset: {nvs_offset}")
+        print(f"  Size:   {nvs_size}")
+
         # 步骤 1.1: 从设备读取 NVS 原始数据
         print("\n正在从设备读取 NVS 分区...")
         nvs_raw_bin = get_nvs_raw_bin_path()
 
-        cmd = [ESPTOOL, "--port", port, "read_flash", NVS_OFFSET, NVS_SIZE, nvs_raw_bin]
+        cmd = [ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, nvs_raw_bin]
         print(f"执行命令: {' '.join(cmd)}")
 
         result = subprocess.run(cmd, capture_output=True, text=True)
@@ -143,13 +155,14 @@ def generate_model_files(device_id, model_type):
 
 #------------------  主函数  ------------------
 
-def main(port, model_type):
+def main(port, model_type, bin_type):
     """
     主函数 - 读取 device_id 并生成模型
 
     参数:
         port: 串口号
         model_type: 模型类型名
+        bin_type: 固件类型（用于获取分区信息）
 
     返回:
         生成的 spiffs_dl 目录路径，失败返回 None
@@ -159,7 +172,7 @@ def main(port, model_type):
         nvs_init_temp_dir()
 
         # 步骤1: 从 NVS 读取 device_id
-        device_id = read_device_id_from_nvs(port)
+        device_id = read_device_id_from_nvs(port, bin_type)
         if not device_id:
             print("\n✗ 从 NVS 读取 device_id 失败")
             return None
@@ -186,19 +199,21 @@ if __name__ == "__main__":
     # 方式1：使用变量传参（直接运行时修改这里的变量）
     port = "COM4"
     model_type = "ped_alerm"
+    bin_type = "sdk_uvc_tw_plate"  # 固件类型
 
-    result = main(port, model_type)
+    result = main(port, model_type, bin_type)
     sys.exit(0 if result else 1)
 
     # 方式2：使用命令行参数（如果需要命令行调用，注释掉上面，取消下面的注释）
-    # if len(sys.argv) < 3:
-    #     print("使用方法: python as_model_down.py <port> <model_type>")
+    # if len(sys.argv) < 4:
+    #     print("使用方法: python as_model_down.py <port> <model_type> <bin_type>")
     #     print("\n示例:")
-    #     print("  python as_model_down.py COM4 ped_alerm")
+    #     print("  python as_model_down.py COM4 ped_alerm sdk_uvc_tw_plate")
     #     sys.exit(1)
     #
     # port_arg = sys.argv[1]
     # model_type_arg = sys.argv[2]
+    # bin_type_arg = sys.argv[3]
     #
-    # result = main(port_arg, model_type_arg)
+    # result = main(port_arg, model_type_arg, bin_type_arg)
     # sys.exit(0 if result else 1)

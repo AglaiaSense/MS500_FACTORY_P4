@@ -15,6 +15,10 @@ import subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from esp_components import get_esp_idf_python, get_nvs_gen_module, get_esptool
 
+# 导入分区工具
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "as_flash_firmware"))
+from as_spifs_partition import get_nvs_info
+
 # ========== 配置区 ==========
 # 使用 esp_components 提供的工具路径
 ESP_IDF_PYTHON = get_esp_idf_python()
@@ -28,15 +32,11 @@ TEMP_DIR = os.path.join(os.path.dirname(__file__), "temp")
 UPDATE_CSV = os.path.join(TEMP_DIR, "update.csv")
 UPDATE_BIN = os.path.join(TEMP_DIR, "update.bin")
 
-# NVS 分区配置
-NVS_OFFSET = "0x9000"
-NVS_SIZE = "0x10000"  # 64KB
-
 
 #------------------  生成 NVS 数据  ------------------
 
 
-def generate_nvs_data(info, existing_nvs=None):
+def generate_nvs_data(info, existing_nvs=None, bin_type="sdk_uvc_tw_plate"):
     """
     生成 NVS CSV 和 BIN 文件
     支持动态写入所有参数，并保留原有 NVS 中的参数
@@ -45,10 +45,19 @@ def generate_nvs_data(info, existing_nvs=None):
         info: 设备信息字典，包含所有需要写入 NVS 的键值对（新数据）
         existing_nvs: 可选，原有的 NVS 数据字典（从 as_nvs_read.check_nvs_data() 获取）
                      如果提供，会保留原有参数，新参数会覆盖同名的旧参数
+        bin_type: 固件类型（用于获取分区信息），默认 sdk_uvc_tw_plate
     """
     print("\n" + "=" * 60)
     print("步骤 4: 生成 NVS 数据（CSV 和 BIN）")
     print("=" * 60)
+
+    # 获取 NVS 分区大小
+    nvs_partition_info = get_nvs_info(bin_type)
+    if not nvs_partition_info:
+        raise RuntimeError(f"Failed to get NVS partition info for bin_type: {bin_type}")
+
+    nvs_size = nvs_partition_info["size"]
+    print(f"NVS partition size (from {bin_type}): {nvs_size}")
 
     # 确保临时目录存在
     if not os.path.exists(TEMP_DIR):
@@ -123,7 +132,7 @@ def generate_nvs_data(info, existing_nvs=None):
         "generate",
         UPDATE_CSV,
         UPDATE_BIN,
-        NVS_SIZE,
+        nvs_size,
     ]
     print(f"执行命令: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -168,18 +177,27 @@ def generate_nvs_data(info, existing_nvs=None):
 #------------------  烧录 NVS 数据  ------------------
 
 
-def flash_nvs(port):
+def flash_nvs(port, bin_type="sdk_uvc_tw_plate"):
     """
     烧录 NVS 数据到设备（仅烧录 NVS，不烧录固件）
 
     Args:
         port: 串口号
+        bin_type: 固件类型（用于获取分区信息），默认 sdk_uvc_tw_plate
     """
     print("\n" + "=" * 60)
     print("步骤 5: 烧录 NVS 数据到设备")
     print("=" * 60)
 
-    cmd = [ESPTOOL, "--port", port, "write_flash", NVS_OFFSET, UPDATE_BIN]
+    # 获取 NVS 分区偏移地址
+    nvs_partition_info = get_nvs_info(bin_type)
+    if not nvs_partition_info:
+        raise RuntimeError(f"Failed to get NVS partition info for bin_type: {bin_type}")
+
+    nvs_offset = nvs_partition_info["offset"]
+    print(f"NVS partition offset (from {bin_type}): {nvs_offset}")
+
+    cmd = [ESPTOOL, "--port", port, "write_flash", nvs_offset, UPDATE_BIN]
     print(f"执行命令: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
 

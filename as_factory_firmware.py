@@ -33,8 +33,8 @@ PORT = "COM4"
 
 # 固件类型（对应 as_flash_firmware/bin_type/ 下的目录名）
 # 可选: "ms500_uvc", "sdk_uvc_tw_plate" 等
-# BIN_TYPE = "ms500_uvc"
-BIN_TYPE = "ped_alarm"
+BIN_TYPE = "ms500_uvc"
+# BIN_TYPE = "ped_alarm"
 
 
 #------------------  主函数  ------------------
