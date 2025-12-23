@@ -21,7 +21,7 @@ CHILD_META_FIELD_Packager = "aitriosPortalPackager"
 
 # 获取访问令牌
 def get_access_token():
-    print("### Get Access Token")
+    print("### 获取访问令牌")
     credentials = f"{CLIENT_ID}:{SECRET}".encode("utf-8")
     authorization_code = base64.b64encode(credentials).decode("utf-8")
 
@@ -39,12 +39,12 @@ def get_access_token():
         response = subprocess.run(command, capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         return json.loads(response.stdout)["access_token"]
     except subprocess.CalledProcessError as e:
-        print(f"Error getting access token: {e.stderr}")
+        print(f"获取访问令牌时出错: {e.stderr}")
         return None
 
 # 上传文件
 def upload_file(access_token, model_path):
-    print("### Upload File")
+    print("### 上传文件")
     command = [
         "curl", "--location", "--request", "POST", f"{SYSTEM_DOMAIN}/api/v1/files",
         "--header", "Content-Type: multipart/form-data",
@@ -58,12 +58,12 @@ def upload_file(access_token, model_path):
         response = subprocess.run(command, capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         return json.loads(response.stdout)["file_info"]["id"]
     except subprocess.CalledProcessError as e:
-        print(f"Error uploading file: {e.stderr}")
+        print(f"上传文件时出错: {e.stderr}")
         return None
 
 # 导入模型
 def import_model(access_token, model_id,file_id):
-    print("### Import Model")
+    print("### 导入模型")
     command = [
         "curl", "--location", "--request", "POST", f"{SYSTEM_DOMAIN}/api/v1/models",
         "--header", "Content-Type: application/json",
@@ -79,22 +79,22 @@ def import_model(access_token, model_id,file_id):
             "input_format_param": [{"ordinal": ORDINAL, "format": FORMAT}]
         })
     ]
-    
+
     try:
         response = subprocess.run(command, capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         result = json.loads(response.stdout)["result"]
         if result != "SUCCESS":
-            print(f"Import Model failed:", response.stdout)
+            print(f"导入模型失败:", response.stdout)
             return False
-        print(f"Import Model succeeded!")
+        print(f"导入模型成功!")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"Error importing as_model_conversion: {e.stderr}")
+        print(f"导入模型时出错: {e.stderr}")
         return False
 
 # 发布模型
 def publish_model(access_token, device_id, model_id):
-    print(f"### Publish Model")
+    print(f"### 发布模型")
     command = [
         "curl", "--location", "--request", "POST", f"{SYSTEM_DOMAIN}/api/v1/models/{model_id}/model_publish",
         "--header", "Content-Type: application/json",
@@ -109,25 +109,25 @@ def publish_model(access_token, device_id, model_id):
             "packager_version": "4.00.00"
         })
     ]
-    
+
     try:
         response = subprocess.run(command, capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         result = json.loads(response.stdout)["result"]
         transaction_id = json.loads(response.stdout)["transaction_id"]
         if result != "SUCCESS":
-            print(f"Publish Model failed:", response.stdout)
+            print(f"发布模型失败:", response.stdout)
             return None
-        print(f"Model published successfully with TRANSACTION_ID = {transaction_id}")
+        print(f"模型发布成功，事务 ID = {transaction_id}")
         return transaction_id
     except subprocess.CalledProcessError as e:
-        print(f"Error publishing as_model_conversion: {e.stderr}")
+        print(f"发布模型时出错: {e.stderr}")
         return None
 
 # 获取发布状态
 def get_publish_status(access_token, transaction_id):
-    print(f"### Get Publish Status")
-    print(f"Wait a moment...")
-    
+    print(f"### 获取发布状态")
+    print(f"请稍候...")
+
     while True:
         time.sleep(10)  # 使用 time.sleep
         command = [
@@ -137,19 +137,19 @@ def get_publish_status(access_token, transaction_id):
             "--header", f"tenant_id: {TENANT_ID}",
             "--header", f"Authorization: Bearer {access_token}"
         ]
-        
+
         try:
             response = subprocess.run(command, capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
             status = json.loads(response.stdout)["status"]
             publish_url = json.loads(response.stdout)["publish_url"]
             if status == "Publish complete":
-                print(f"PUBLISH_URL = {publish_url}")
-                print(f"Complete!")
+                print(f"发布 URL = {publish_url}")
+                print(f"完成!")
                 return publish_url
             else:
-                print(f"Incomplete! Retrying...")
+                print(f"未完成! 重试中...")
         except subprocess.CalledProcessError as e:
-            print(f"Error getting publish status: {e.stderr}")
+            print(f"获取发布状态时出错: {e.stderr}")
             return None
 
 def download_model(publish_url, output_dir=None):
@@ -174,8 +174,8 @@ def download_model(publish_url, output_dir=None):
     else:
         output_path = file_name
 
-    print(f"FILE_NAME = {file_name}")
-    print(f"OUTPUT_PATH = {output_path}")
+    print(f"文件名 = {file_name}")
+    print(f"输出路径 = {output_path}")
 
     try:
         # 发送 GET 请求下载文件
@@ -185,13 +185,13 @@ def download_model(publish_url, output_dir=None):
         if response.status_code == 200:
             with open(output_path, 'wb') as file:
                 file.write(response.content)
-            print(f"File {file_name} downloaded successfully.")
+            print(f"文件 {file_name} 下载成功")
             return output_path
         else:
-            print(f"Failed to download file. Status code: {response.status_code}")
+            print(f"下载文件失败。状态码: {response.status_code}")
             return None
     except Exception as e:
-        print(f"Error occurred while downloading the file: {e}")
+        print(f"下载文件时发生错误: {e}")
         return None
 
 # 模型转换主函数

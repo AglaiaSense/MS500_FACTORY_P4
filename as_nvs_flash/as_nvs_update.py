@@ -47,7 +47,7 @@ def generate_nvs_data(info, existing_nvs=None):
                      如果提供，会保留原有参数，新参数会覆盖同名的旧参数
     """
     print("\n" + "=" * 60)
-    print("Step 4: Generate NVS data (CSV and BIN)")
+    print("步骤 4: 生成 NVS 数据（CSV 和 BIN）")
     print("=" * 60)
 
     # 确保临时目录存在
@@ -59,28 +59,28 @@ def generate_nvs_data(info, existing_nvs=None):
     merged_data = {}
 
     if existing_nvs and existing_nvs.get("decoded") and existing_nvs.get("info"):
-        print("\nPreserving existing NVS parameters...")
+        print("\n保留现有的 NVS 参数...")
         existing_info = existing_nvs.get("info", {})
         merged_data.update(existing_info)
-        print(f"  Found {len(existing_info)} existing parameters")
+        print(f"  找到 {len(existing_info)} 个现有参数")
 
         # 显示被保留的参数
         preserved_keys = [k for k in existing_info.keys() if k not in info]
         if preserved_keys:
-            print(f"  Preserved parameters: {', '.join(preserved_keys)}")
+            print(f"  保留的参数: {', '.join(preserved_keys)}")
 
     # 新数据覆盖原有数据
     if info:
-        print(f"\nAdding/updating {len(info)} new parameters...")
+        print(f"\n添加/更新 {len(info)} 个新参数...")
         merged_data.update(info)
 
         # 显示被更新的参数
         updated_keys = [k for k in info.keys()]
         if updated_keys:
-            print(f"  Updated parameters: {', '.join(updated_keys)}")
+            print(f"  更新的参数: {', '.join(updated_keys)}")
 
     # 生成 CSV 文件
-    print("\nGenerating NVS CSV file...")
+    print("\n生成 NVS CSV 文件...")
     with open(UPDATE_CSV, "w", encoding="utf-8") as f:
         f.write("key,type,encoding,value\n")
         f.write("factory,namespace,,\n")
@@ -98,22 +98,22 @@ def generate_nvs_data(info, existing_nvs=None):
 
             f.write(f"{key},data,{data_type},{value_str}\n")
 
-    print(f"✓ CSV file generated: {UPDATE_CSV}")
+    print(f"✓ CSV 文件已生成: {UPDATE_CSV}")
 
     # 打印 CSV 文件内容
-    print(f"\nCSV file path: {os.path.abspath(UPDATE_CSV)}")
-    print("CSV file content:")
+    print(f"\nCSV 文件路径: {os.path.abspath(UPDATE_CSV)}")
+    print("CSV 文件内容:")
     print("-" * 40)
     try:
         with open(UPDATE_CSV, "r", encoding="utf-8") as f:
             csv_content = f.read()
             print(csv_content)
     except Exception as e:
-        print(f"Cannot read CSV file: {e}")
+        print(f"无法读取 CSV 文件: {e}")
     print("-" * 40)
 
     # 生成 NVS BIN 文件
-    print("\nGenerating NVS BIN file...")
+    print("\n生成 NVS BIN 文件...")
 
     # 使用 ESP-IDF 的 NVS 分区生成模块
     cmd = [
@@ -125,44 +125,44 @@ def generate_nvs_data(info, existing_nvs=None):
         UPDATE_BIN,
         NVS_SIZE,
     ]
-    print(f"Execute command: {' '.join(cmd)}")
+    print(f"执行命令: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     # 打印返回码
-    print(f"Command return code: {result.returncode}")
+    print(f"命令返回码: {result.returncode}")
 
     if result.returncode != 0:
         print("\n" + "!" * 60)
-        print("Error: Failed to generate NVS BIN")
+        print("错误: 生成 NVS BIN 失败")
         print("!" * 60)
 
         # 打印详细错误信息
         print("\n" + "-" * 60)
-        print("Detailed error info:")
+        print("详细错误信息:")
         print("-" * 60)
 
-        print("STDOUT:")
+        print("标准输出:")
         if result.stdout.strip():
             print(result.stdout)
         else:
-            print("(stdout is empty)")
+            print("（标准输出为空）")
 
-        print("\nSTDERR:")
+        print("\n标准错误:")
         if result.stderr.strip():
             print(result.stderr)
         else:
-            print("(stderr is empty)")
+            print("（标准错误为空）")
 
         print("-" * 60)
-        raise RuntimeError("Failed to generate NVS partition")
+        raise RuntimeError("生成 NVS 分区失败")
 
-    print(f"✓ NVS BIN file generated: {UPDATE_BIN}")
-    print(f"  File path: {os.path.abspath(UPDATE_BIN)}")
+    print(f"✓ NVS BIN 文件已生成: {UPDATE_BIN}")
+    print(f"  文件路径: {os.path.abspath(UPDATE_BIN)}")
 
     # 验证文件是否真的生成
     if os.path.exists(UPDATE_BIN):
         file_size = os.path.getsize(UPDATE_BIN)
-        print(f"  File size: {file_size} bytes")
+        print(f"  文件大小: {file_size} 字节")
 
 
 #------------------  烧录 NVS 数据  ------------------
@@ -176,21 +176,21 @@ def flash_nvs(port):
         port: 串口号
     """
     print("\n" + "=" * 60)
-    print("Step 5: Flash NVS data to device")
+    print("步骤 5: 烧录 NVS 数据到设备")
     print("=" * 60)
 
     cmd = [ESPTOOL, "--port", port, "write_flash", NVS_OFFSET, UPDATE_BIN]
-    print(f"Execute command: {' '.join(cmd)}")
+    print(f"执行命令: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
         print("\n" + "!" * 60)
-        print("Error: Failed to flash NVS data")
+        print("错误: 烧录 NVS 数据失败")
         print("!" * 60)
 
         # 打印详细错误信息
         print("\n" + "-" * 60)
-        print("Detailed error info:")
+        print("详细错误信息:")
         print("-" * 60)
 
         # 打印标准输出（如果有）
@@ -201,12 +201,12 @@ def flash_nvs(port):
         if result.stderr.strip():
             print(result.stderr)
         else:
-            print("(No error details)")
+            print("（无错误详情）")
 
         print("-" * 60)
-        raise RuntimeError("Failed to flash NVS data")
+        raise RuntimeError("烧录 NVS 数据失败")
 
-    print("✓ NVS data flashed successfully!")
+    print("✓ NVS 数据烧录成功!")
 
 
 #------------------  获取 NVS BIN 文件路径  ------------------

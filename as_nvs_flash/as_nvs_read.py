@@ -52,7 +52,7 @@ def convert_to_csv(nvs_output, output_file):
     """
     将 nvs_tool.py 的输出转换为 CSV 格式
     """
-    print(f"  Converting to CSV format: {output_file}")
+    print(f"  转换为 CSV 格式: {output_file}")
 
     # 解析 nvs_tool.py 的 minimal 输出
     # 格式: namespace:key = value
@@ -110,7 +110,7 @@ def convert_to_csv(nvs_output, output_file):
             # 写入数据行
             f.write(f"{entry['key']},data,{entry['type']},{entry['value']}\n")
 
-    print(f"  CSV file saved: {os.path.abspath(output_file)}")
+    print(f"  CSV 文件已保存: {os.path.abspath(output_file)}")
 
 
 #------------------  从设备读取 NVS 和 MAC  ------------------
@@ -127,30 +127,30 @@ def read_flash_and_mac(port):
         MAC 地址字符串
     """
     print("=" * 60)
-    print("Step 1: Connect device and read Flash NVS partition")
+    print("步骤 1: 连接设备并读取 Flash NVS 分区")
     print("=" * 60)
 
     # 初始化临时目录
     init_temp_dir()
 
     cmd = [ESPTOOL, "--port", port, "read_flash", NVS_OFFSET, NVS_SIZE, READ_BIN]
-    print(f"Execute command: {' '.join(cmd)}")
+    print(f"执行命令: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     # 检查是否成功
     if result.returncode != 0:
         print("\n" + "!" * 60)
-        print("Error: Cannot connect to device or read Flash")
+        print("错误: 无法连接到设备或读取 Flash")
         print("!" * 60)
-        print("\nPlease check:")
-        print("  1. Device is connected to " + port)
-        print("  2. COM port number is correct")
-        print("  3. Device is in download mode (Bootloader)")
-        print("  4. Serial port is not used by other programs")
+        print("\n请检查:")
+        print("  1. 设备是否正确连接到 " + port)
+        print("  2. COM 端口号是否正确")
+        print("  3. 设备是否处于下载模式（Bootloader）")
+        print("  4. 串口是否被其他程序占用")
 
         # 打印详细错误信息
         print("\n" + "-" * 60)
-        print("Detailed error info:")
+        print("详细错误信息:")
         print("-" * 60)
 
         # 打印标准输出（如果有）
@@ -161,26 +161,26 @@ def read_flash_and_mac(port):
         if result.stderr.strip():
             print(result.stderr)
         else:
-            print("(No error details)")
+            print("（无错误详情）")
 
         print("-" * 60)
-        raise RuntimeError("Failed to read Flash")
+        raise RuntimeError("读取 Flash 失败")
 
     # 从输出中提取 MAC 地址
     mac = None
     for line in result.stdout.splitlines():
         if "Detecting chip type" in line:
-            print(f"  Detected chip: {line.split('...')[-1].strip()}")
+            print(f"  检测到芯片: {line.split('...')[-1].strip()}")
         if "Chip is" in line:
             print(f"  {line.strip()}")
         if "MAC:" in line:
             mac = line.split("MAC:")[-1].strip()
-            print(f"  MAC address: {mac}")
+            print(f"  MAC 地址: {mac}")
 
     if not mac:
-        raise RuntimeError("Cannot read MAC address from device")
+        raise RuntimeError("无法从设备读取 MAC 地址")
 
-    print(f"✓ Successfully read NVS data to file: {READ_BIN}")
+    print(f"✓ 成功读取 NVS 数据到文件: {READ_BIN}")
     return mac
 
 
@@ -196,18 +196,18 @@ def check_nvs_data():
         None: 如果 NVS 为空或无法解析
     """
     print("\n" + "=" * 60)
-    print("Step 2: Check and decode NVS data")
+    print("步骤 2: 检查并解码 NVS 数据")
     print("=" * 60)
 
     # 检查 NVS raw 文件是否存在
     full_path = os.path.abspath(READ_BIN)
     if not os.path.exists(READ_BIN):
-        print(f"Error: NVS raw file not found")
-        print(f"  Search path: {full_path}")
+        print(f"错误: NVS 原始文件未找到")
+        print(f"  搜索路径: {full_path}")
         return None
 
     file_size = os.path.getsize(READ_BIN)
-    print(f"  File size: {file_size} bytes")
+    print(f"  文件大小: {file_size} 字节")
 
     # 读取文件的前 256 字节，快速检查 NVS 分区状态
     with open(READ_BIN, "rb") as f:
@@ -215,40 +215,40 @@ def check_nvs_data():
 
     # 检查是否是空白分区（全是 0xFF）
     if all(b == 0xFF for b in first_bytes):
-        print("  Detected: NVS partition is blank (all 0xFF)")
-        print("  ✓ Device not registered, can write new data")
+        print("  检测到: NVS 分区为空白（全是 0xFF）")
+        print("  ✓ 设备未注册，可以写入新数据")
         return None
 
     # NVS 分区有数据，尝试解码
-    print("  Detected: NVS partition has data")
+    print("  检测到: NVS 分区有数据")
 
     # 检查官方工具是否存在
     if not os.path.exists(NVS_TOOL_PATH):
-        print(f"\n  Error: Cannot find official nvs_tool.py")
-        print(f"  Search path: {NVS_TOOL_PATH}")
+        print(f"\n  错误: 找不到官方 nvs_tool.py")
+        print(f"  搜索路径: {NVS_TOOL_PATH}")
         return {"has_data": True, "decoded": False}
 
     # 使用官方 nvs_tool.py 解析（minimal 格式）
-    print("\n  Trying to decode NVS data...")
+    print("\n  尝试解码 NVS 数据...")
     cmd = [ESP_IDF_PYTHON, NVS_TOOL_PATH, READ_BIN, "-d", "minimal"]
-    print(f"  Execute command: {' '.join(cmd)}")
+    print(f"  执行命令: {' '.join(cmd)}")
 
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        print("  Warning: Cannot decode NVS data")
-        print(f"  Error info: {result.stderr if result.stderr else result.stdout}")
-        print("\n  Possible reasons:")
-        print("    1. NVS partition data corrupted")
-        print("    2. NVS partition format incompatible")
-        print("    3. Partition data is encrypted")
+        print("  警告: 无法解码 NVS 数据")
+        print(f"  错误信息: {result.stderr if result.stderr else result.stdout}")
+        print("\n  可能的原因:")
+        print("    1. NVS 分区数据损坏")
+        print("    2. NVS 分区格式不兼容")
+        print("    3. 分区数据已加密")
         return {"has_data": True, "decoded": False}
 
     # 解码成功，打印原始输出
-    print("  ✓ NVS data decoded successfully!")
+    print("  ✓ NVS 数据解码成功!")
 
     print("\n" + "-" * 60)
-    print("  NVS data content:")
+    print("  NVS 数据内容:")
     print("-" * 60)
     if result.stdout.strip():
         print(result.stdout)
@@ -258,7 +258,7 @@ def check_nvs_data():
     try:
         convert_to_csv(result.stdout, READ_CSV)
     except Exception as e:
-        print(f"  Warning: Failed to convert CSV: {e}")
+        print(f"  警告: 转换 CSV 失败: {e}")
         return {"has_data": True, "decoded": False}
 
     # 解析 CSV，提取关键信息
@@ -275,16 +275,16 @@ def check_nvs_data():
                         if key and key != "factory":  # 跳过 namespace
                             nvs_info[key] = value
         except Exception as e:
-            print(f"  Failed to parse CSV: {e}")
+            print(f"  解析 CSV 失败: {e}")
 
     if nvs_info:
-        print("\n  Device registration info:")
+        print("\n  设备注册信息:")
         for key, value in nvs_info.items():
             print(f"    {key}: {value}")
 
         return {"has_data": True, "decoded": True, "info": nvs_info}
     else:
-        print("  Warning: No valid data extracted")
+        print("  警告: 未提取到有效数据")
         return {"has_data": True, "decoded": False}
 
 
@@ -321,38 +321,38 @@ def main():
     port = sys.argv[1] if len(sys.argv) > 1 else "COM4"
 
     print("=" * 60)
-    print("  NVS Read and Parse Tool")
+    print("  NVS 读取和解析工具")
     print("=" * 60)
-    print(f"Port: {port}")
+    print(f"串口: {port}")
     print("=" * 60)
 
     try:
         # 读取 Flash 和 MAC 地址
         mac = read_flash_and_mac(port)
-        print(f"\n✓ MAC Address: {mac}")
+        print(f"\n✓ MAC 地址: {mac}")
 
         # 检查 NVS 数据
         nvs_info = check_nvs_data()
 
         if nvs_info and nvs_info.get("decoded"):
             print("\n" + "=" * 60)
-            print("  NVS Data Summary")
+            print("  NVS 数据摘要")
             print("=" * 60)
             info = nvs_info.get("info", {})
             for key, value in info.items():
                 print(f"  {key}: {value}")
             print("=" * 60)
         else:
-            print("\n✓ NVS partition is empty or cannot be decoded")
+            print("\n✓ NVS 分区为空或无法解码")
 
-        print("\n✓ Operation completed successfully!")
+        print("\n✓ 操作成功完成!")
         return 0
 
     except KeyboardInterrupt:
-        print("\n\nOperation interrupted by user")
+        print("\n\n操作被用户中断")
         return 1
     except Exception as e:
-        print(f"\n\nError: {e}")
+        print(f"\n\n错误: {e}")
         import traceback
 
         traceback.print_exc()
