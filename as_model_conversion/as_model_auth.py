@@ -36,15 +36,15 @@ def create_work_directories(device_id: str, base_path: Optional[str] = None) -> 
     """
     创建工作目录结构
 
-    Args:
+    参数:
         device_id: 设备 ID（32位十六进制字符串）
         base_path: 基础路径，默认为 as_model_conversion 目录
 
-    Returns:
+    返回:
         (device_work_dir, output_dir, spiffs_dl_dir) 三个目录路径
     """
     print("\n" + "=" * 60)
-    print("  Step 1: Create Work Directories")
+    print("  步骤 1: 创建工作目录")
     print("=" * 60)
 
     # 确定基础路径（当前文件在 as_model_conversion 目录下）
@@ -58,16 +58,16 @@ def create_work_directories(device_id: str, base_path: Optional[str] = None) -> 
 
     # 如果目录已存在，先删除（确保干净的工作环境）
     if os.path.exists(device_work_dir):
-        print(f"Removing existing directory: {device_work_dir}")
+        print(f"删除已存在的目录: {device_work_dir}")
         shutil.rmtree(device_work_dir)
 
     # 创建目录
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(spiffs_dl_dir, exist_ok=True)
 
-    print(f"✓ Device work directory: {device_work_dir}")
-    print(f"✓ Output directory: {output_dir}")
-    print(f"✓ SPIFFS DL directory: {spiffs_dl_dir}")
+    print(f"✓ 设备工作目录: {device_work_dir}")
+    print(f"✓ 输出目录: {output_dir}")
+    print(f"✓ SPIFFS DL 目录: {spiffs_dl_dir}")
 
     return device_work_dir, output_dir, spiffs_dl_dir
 
@@ -78,17 +78,17 @@ def convert_model(device_id: str, model_type: str, output_dir: str, base_path: O
     """
     使用 model_convert 进行模型转换
 
-    Args:
+    参数:
         device_id: 设备 ID
         model_type: 模型类型（如 "ped_alerm"）
         output_dir: 输出目录
         base_path: 基础路径
 
-    Returns:
+    返回:
         转换后的文件路径，失败返回 None
     """
     print("\n" + "=" * 60)
-    print("  Step 2: Model Conversion")
+    print("  步骤 2: 模型转换")
     print("=" * 60)
 
     # 确定基础路径（当前文件在 as_model_conversion 目录下）
@@ -99,23 +99,23 @@ def convert_model(device_id: str, model_type: str, output_dir: str, base_path: O
     packerOut_path = os.path.join(base_path, "type_model", model_type, "packerOut.zip")
 
     if not os.path.exists(packerOut_path):
-        print(f"Error: packerOut.zip not found: {packerOut_path}")
+        print(f"错误: packerOut.zip 未找到: {packerOut_path}")
         return None
 
-    print(f"Model type: {model_type}")
-    print(f"PackerOut path: {packerOut_path}")
-    print(f"Output directory: {output_dir}")
+    print(f"模型类型: {model_type}")
+    print(f"PackerOut 路径: {packerOut_path}")
+    print(f"输出目录: {output_dir}")
 
     # 调用 model_convert 函数
-    print("\n### Calling model_convert function...")
+    print("\n### 调用 model_convert 函数...")
     converted_file = model_convert(device_id, packerOut_path, output_dir)
 
     if not converted_file:
-        print("Error: Model conversion failed")
+        print("错误: 模型转换失败")
         return None
 
-    print(f"\n✓ Model conversion successful!")
-    print(f"✓ Output file: {converted_file}")
+    print(f"\n✓ 模型转换成功!")
+    print(f"✓ 输出文件: {converted_file}")
 
     return converted_file
 
@@ -126,42 +126,42 @@ def extract_zip_file(zip_file_path: str, device_work_dir: str) -> Optional[str]:
     """
     解压缩 ZIP 文件到 output 目录
 
-    Args:
+    参数:
         zip_file_path: ZIP 文件路径
         device_work_dir: 设备工作目录
 
-    Returns:
+    返回:
         解压后的目录路径，失败返回 None
     """
     print("\n" + "=" * 60)
-    print("  Step 3: Extract ZIP File")
+    print("  步骤 3: ZIP 解压缩")
     print("=" * 60)
 
     # 解压目录：temp/{device_id}/output
     extract_dir = os.path.join(device_work_dir, "output")
 
-    print(f"ZIP file: {zip_file_path}")
-    print(f"Extract to: {extract_dir}")
+    print(f"ZIP 文件: {zip_file_path}")
+    print(f"解压到: {extract_dir}")
 
     try:
         with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
             zip_ref.extractall(extract_dir)
 
-        print(f"✓ Extracted successfully")
+        print(f"✓ 解压成功")
 
         # 查找解压后的实际内容目录（可能在子目录中）
         extracted_items = os.listdir(extract_dir)
         if len(extracted_items) == 1 and os.path.isdir(os.path.join(extract_dir, extracted_items[0])):
             # 如果解压后只有一个子目录，返回该子目录路径
             actual_extract_dir = os.path.join(extract_dir, extracted_items[0])
-            print(f"✓ Actual content directory: {actual_extract_dir}")
+            print(f"✓ 实际内容目录: {actual_extract_dir}")
             return actual_extract_dir
         else:
             # 否则返回 extract_dir
             return extract_dir
 
     except Exception as e:
-        print(f"Error during extraction: {e}")
+        print(f"解压过程中发生错误: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -176,17 +176,17 @@ def copy_flash_files(extract_dir: str, model_type: str, spiffs_dl_dir: str, base
     1. 解压后的 network.fpk
     2. type_model 目录下的 network_info.txt
 
-    Args:
+    参数:
         extract_dir: 解压后的目录
         model_type: 模型类型
         spiffs_dl_dir: SPIFFS DL 目录
         base_path: 基础路径
 
-    Returns:
+    返回:
         成功返回 True，失败返回 False
     """
     print("\n" + "=" * 60)
-    print("  Step 4: Copy Flash Files")
+    print("  步骤 4: 复制烧录文件")
     print("=" * 60)
 
     # 确定基础路径（当前文件在 as_model_conversion 目录下）
@@ -202,24 +202,24 @@ def copy_flash_files(extract_dir: str, model_type: str, spiffs_dl_dir: str, base
                     source_fpk = os.path.join(root, file)
                     target_fpk = os.path.join(spiffs_dl_dir, file)
                     shutil.copy2(source_fpk, target_fpk)
-                    print(f"✓ Copied {file}")
-                    print(f"  From: {source_fpk}")
-                    print(f"  To: {target_fpk}")
+                    print(f"✓ 已复制 {file}")
+                    print(f"  源路径: {source_fpk}")
+                    print(f"  目标路径: {target_fpk}")
                     network_fpk_found = True
                     break
             if network_fpk_found:
                 break
 
         if not network_fpk_found:
-            print("Error: network.fpk not found in extracted files")
+            print("错误: 在解压文件中未找到 network.fpk")
             return False
 
         # 2. 复制 network_info.txt
         network_info_source = os.path.join(base_path, "type_model", model_type, "network_info.txt")
 
         if not os.path.exists(network_info_source):
-            print(f"Warning: network_info.txt not found: {network_info_source}")
-            print("Checking if network_info.txt exists in extracted files...")
+            print(f"警告: network_info.txt 未找到: {network_info_source}")
+            print("检查解压文件中是否存在 network_info.txt...")
 
             # 尝试从解压文件中查找
             network_info_found = False
@@ -228,27 +228,27 @@ def copy_flash_files(extract_dir: str, model_type: str, spiffs_dl_dir: str, base
                     source_info = os.path.join(root, "network_info.txt")
                     target_info = os.path.join(spiffs_dl_dir, "network_info.txt")
                     shutil.copy2(source_info, target_info)
-                    print(f"✓ Copied network_info.txt from extracted files")
-                    print(f"  From: {source_info}")
-                    print(f"  To: {target_info}")
+                    print(f"✓ 从解压文件中复制了 network_info.txt")
+                    print(f"  源路径: {source_info}")
+                    print(f"  目标路径: {target_info}")
                     network_info_found = True
                     break
 
             if not network_info_found:
-                print("Error: network_info.txt not found anywhere")
+                print("错误: 无法在任何位置找到 network_info.txt")
                 return False
         else:
             target_info = os.path.join(spiffs_dl_dir, "network_info.txt")
             shutil.copy2(network_info_source, target_info)
-            print(f"✓ Copied network_info.txt")
-            print(f"  From: {network_info_source}")
-            print(f"  To: {target_info}")
+            print(f"✓ 已复制 network_info.txt")
+            print(f"  源路径: {network_info_source}")
+            print(f"  目标路径: {target_info}")
 
-        print(f"\n✓ All flash files copied successfully")
+        print(f"\n✓ 所有烧录文件已成功复制")
         return True
 
     except Exception as e:
-        print(f"Error during file copy: {e}")
+        print(f"文件复制过程中发生错误: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -260,14 +260,14 @@ def assemble_spiffs_dl(spiffs_dl_dir: str) -> bool:
     """
     验证并组装 spiffs_dl 目录
 
-    Args:
+    参数:
         spiffs_dl_dir: SPIFFS DL 目录路径
 
-    Returns:
+    返回:
         成功返回 True，失败返回 False
     """
     print("\n" + "=" * 60)
-    print("  Step 5: Assemble SPIFFS_DL Directory")
+    print("  步骤 5: 组装 SPIFFS_DL 目录")
     print("=" * 60)
 
     # 检查必需文件
@@ -276,27 +276,27 @@ def assemble_spiffs_dl(spiffs_dl_dir: str) -> bool:
         if file.endswith('.fpk') or file == 'network_info.txt':
             required_files.append(file)
 
-    print(f"SPIFFS DL directory: {spiffs_dl_dir}")
-    print(f"Files in directory:")
+    print(f"SPIFFS DL 目录: {spiffs_dl_dir}")
+    print(f"目录中的文件:")
     for file in required_files:
         file_path = os.path.join(spiffs_dl_dir, file)
         file_size = os.path.getsize(file_path)
-        print(f"  - {file} ({file_size} bytes)")
+        print(f"  - {file} ({file_size} 字节)")
 
     # 验证必需文件
     has_fpk = any(f.endswith('.fpk') for f in required_files)
     has_network_info = 'network_info.txt' in required_files
 
     if not has_fpk:
-        print("Error: No .fpk file found")
+        print("错误: 未找到 .fpk 文件")
         return False
 
     if not has_network_info:
-        print("Error: network_info.txt not found")
+        print("错误: 未找到 network_info.txt")
         return False
 
-    print(f"\n✓ SPIFFS_DL directory assembled successfully")
-    print(f"✓ Ready for flashing")
+    print(f"\n✓ SPIFFS_DL 目录组装成功")
+    print(f"✓ 准备烧录")
 
     return True
 
@@ -318,19 +318,19 @@ def generate_model_by_device_id(
     4. 复制烧录文件（network.fpk + network_info.txt）
     5. 组装 spiffs_dl 目录
 
-    Args:
+    参数:
         device_id: 设备 ID（32位十六进制字符串）
         model_type: 模型类型（如 "ped_alerm"），对应 type_model 下的目录名
         base_path: 基础路径，默认为 as_model_conversion 目录
 
-    Returns:
+    返回:
         生成的 spiffs_dl 目录路径，失败返回 None
     """
     print("\n" + "=" * 80)
-    print("  Generate Model by Device ID - 5-Step Process")
+    print("  根据设备 ID 生成模型 - 5步流程")
     print("=" * 80)
-    print(f"Device ID: {device_id}")
-    print(f"Model Type: {model_type}")
+    print(f"设备 ID: {device_id}")
+    print(f"模型类型: {model_type}")
 
     try:
         # 确定基础路径（当前文件在 as_model_conversion 目录下）
@@ -360,14 +360,14 @@ def generate_model_by_device_id(
 
         # 返回 spiffs_dl 目录路径
         print("\n" + "=" * 80)
-        print("  ✓ All Steps Completed Successfully")
+        print("  ✓ 所有步骤已成功完成")
         print("=" * 80)
-        print(f"✓ SPIFFS DL directory: {spiffs_dl_dir}")
+        print(f"✓ SPIFFS DL 目录: {spiffs_dl_dir}")
 
         return str(spiffs_dl_dir)
 
     except Exception as e:
-        print(f"\nError occurred: {str(e)}")
+        print(f"\n发生错误: {str(e)}")
         import traceback
         traceback.print_exc()
         return None
@@ -376,10 +376,10 @@ def generate_model_by_device_id(
 #------------------  主函数  ------------------
 
 def main():
-    """主函数 - 用于测试"""
+    """主函数 - 用于命令行调用"""
     if len(sys.argv) < 3:
-        print("Usage: python as_model_auth.py <device_id> <model_type>")
-        print("\nExample:")
+        print("使用方法: python as_model_auth.py <device_id> <model_type>")
+        print("\n示例:")
         print("  python as_model_auth.py 100B50501A2101026964011000000000 ped_alerm")
         sys.exit(1)
 
@@ -389,10 +389,10 @@ def main():
     result = generate_model_by_device_id(device_id_arg, model_type_arg)
 
     if result:
-        print(f"\n✓ Success! SPIFFS DL directory: {result}")
+        print(f"\n✓ 成功! SPIFFS DL 目录: {result}")
         sys.exit(0)
     else:
-        print(f"\n✗ Failed to generate model")
+        print(f"\n✗ 生成模型失败")
         sys.exit(1)
 
 
@@ -405,10 +405,10 @@ if __name__ == "__main__":
     result = generate_model_by_device_id(device_id, model_type)
 
     if result:
-        print(f"\n✓ Success! SPIFFS DL directory: {result}")
+        print(f"\n✓ 成功! SPIFFS DL 目录: {result}")
         sys.exit(0)
     else:
-        print(f"\n✗ Failed to generate model")
+        print(f"\n✗ 生成模型失败")
         sys.exit(1)
 
     # 方式2：使用命令行参数（如果需要命令行调用，注释掉上面，取消下面的注释）
