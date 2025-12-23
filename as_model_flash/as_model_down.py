@@ -33,7 +33,6 @@ NVS_SIZE = "0x10000"  # 64KB
 # 使用 esp_components 提供的工具路径
 ESPTOOL = get_esptool()
 
-
 #------------------  步骤1: 从 NVS 读取 g_camera_id  ------------------
 
 def read_device_id_from_nvs(port):

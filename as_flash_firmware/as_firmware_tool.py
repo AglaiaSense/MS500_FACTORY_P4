@@ -28,12 +28,6 @@ FLASH_MODE = "dio"
 FLASH_FREQ = "80m"
 FLASH_SIZE = "16MB"
 
-# 固件文件目录配置
-# BIN_TYPE = "ped_alarm"  # 可修改为不同的固件类型
-BIN_TYPE = "ms500_uvc"  # 可修改为不同的固件类型
-BUILD_DIR = os.path.join(os.path.dirname(__file__), "bin_type", BIN_TYPE)
-PARTITIONS_CSV = os.path.join(BUILD_DIR, "partitions.csv")
-
 # Flash 烧录地址映射表（从 partitions.csv 文件动态加载）
 FLASH_MAP = {}
 
@@ -126,7 +120,7 @@ def load_flash_config(bin_dir):
 
 #------------------ 文件检查 ------------------
 
-def check_bin_files():
+def check_bin_files(bin_dir):
     """
     检查 ms500_build 目录中的 bin 文件是否存在
     """
@@ -134,14 +128,12 @@ def check_bin_files():
     print("步骤1: 检查固件文件")
     print("=" * 60)
 
-    if not os.path.exists(BUILD_DIR):
-        raise RuntimeError(f"错误: 找不到目录 '{BUILD_DIR}'")
 
     missing_files = []
     found_files = []
 
     for filename in FLASH_MAP.keys():
-        file_path = os.path.join(BUILD_DIR, filename)
+        file_path = os.path.join(bin_dir, filename)
         if os.path.exists(file_path):
             file_size = os.path.getsize(file_path)
             print(f"  ✓ {filename} ({file_size} bytes)")
@@ -212,7 +204,7 @@ def test_connection(port):
 
 #------------------ 烧录固件 ------------------
 
-def flash_firmware(port):
+def flash_firmware(port,bin_dir):
     """
     烧录所有固件文件到 ESP32-P4
     """
@@ -236,7 +228,7 @@ def flash_firmware(port):
 
     # 添加所有固件文件及其地址
     for filename, address in FLASH_MAP.items():
-        file_path = os.path.join(BUILD_DIR, filename)
+        file_path = os.path.join(bin_dir, filename)
         cmd.extend([address, file_path])
 
     # 打印烧录命令
@@ -313,13 +305,13 @@ def flash_firmware_with_config(port, bin_type):
         load_flash_config(bin_dir)
 
         # 步骤1: 检查固件文件
-        check_bin_files()
+        check_bin_files(bin_dir)
 
         # 步骤2: 测试串口连接
         test_connection(port)
 
         # 步骤3: 烧录固件
-        flash_firmware(port)
+        flash_firmware(port,bin_dir)
 
         # 完成
         print("\n" + "=" * 60)
@@ -341,15 +333,3 @@ def flash_firmware_with_config(port, bin_type):
         traceback.print_exc()
         return False
 
-
-#------------------ 主函数 ------------------
-
-def main():
-    """
-    固件烧录主流程（使用全局配置）
-    """
-    return flash_firmware_with_config(PORT, BIN_TYPE)
-
-
-if __name__ == "__main__":
-    main()

@@ -112,7 +112,7 @@ def test_read_mac(port):
 
 def request_server(mac, existing_info=None):
     """
-    调用 as_dm_register.as_service_register.py 注册设备并获取设备信息
+    调用 as_dm_register.register_device() 注册设备并获取设备信息
 
     Args:
         mac: MAC 地址
@@ -123,8 +123,35 @@ def request_server(mac, existing_info=None):
     print("=" * 60)
 
     try:
-        # 导入 as_dm_register 模块
-        from as_dm_register import as_service_register
+        # 读取配置文件 as_ms500_config.json
+        import json
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'as_ms500_config.json')
+
+        if not os.path.exists(config_path):
+            raise RuntimeError(f"配置文件不存在: {config_path}")
+
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+
+        # 从配置文件中提取参数
+        server_url = config.get('server_url', '').strip()
+        c_sn = config.get('c_sn', '').strip()
+        u_sn = config.get('u_sn', '').strip()
+        u_url = config.get('u_url', '127.0.0.1')  # 默认值
+
+        # 检查必需参数
+        if not server_url:
+            raise RuntimeError("配置文件中缺少 server_url")
+        if not c_sn:
+            raise RuntimeError("配置文件中缺少 c_sn")
+        if not u_sn:
+            raise RuntimeError("配置文件中缺少 u_sn")
+
+        print(f"从配置文件读取到参数:")
+        print(f"  server_url: {server_url}")
+        print(f"  c_sn: {c_sn}")
+        print(f"  u_sn: {u_sn}")
+        print(f"  u_url: {u_url}")
 
         # 从 existing_info 中提取 g_camera_id
         g_camera_id = None
@@ -133,8 +160,12 @@ def request_server(mac, existing_info=None):
             if g_camera_id:
                 print(f"从 NVS 中读取到 g_camera_id: {g_camera_id}")
 
-        # 调用注册函数，传入 g_camera_id
-        result = as_service_register.main(g_camera_id=g_camera_id)
+        # 导入 as_dm_register 模块
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'as_dm_register'))
+        from as_dm_register import register_device
+
+        # 调用注册函数，传入参数
+        result = register_device(server_url, c_sn, u_sn, g_camera_id, u_url)
 
         if not result.get('success'):
             error_msg = result.get('error', 'Unknown error')
