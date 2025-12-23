@@ -13,12 +13,11 @@ import sys
 import subprocess
 
 # 导入 ESP 组件工具
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from esp_components import get_esp_idf_python, get_nvs_tool_path, get_esptool
 
 # 导入分区工具
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "as_flash_firmware"))
-from as_spifs_partition import get_nvs_info
+from as_flash_firmware import get_nvs_info
 
 # ========== 配置区 ==========
 # 使用 esp_components 提供的工具路径
@@ -116,7 +115,7 @@ def convert_to_csv(nvs_output, output_file):
 #------------------  从设备读取 NVS 和 MAC  ------------------
 
 
-def read_flash_and_mac(port, bin_type="sdk_uvc_tw_plate"):
+def read_flash_and_mac(port, bin_type):
     """
     从设备读取 NVS 分区数据并获取 MAC 地址
 

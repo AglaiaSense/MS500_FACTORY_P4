@@ -1,16 +1,16 @@
 {
     "request": {
         "server_url": "http://192.168.0.6:8000",
-        "c_sn": "CA500-MIPI-zlxc-0057",
-        "u_sn": "MS500-H120-EP-zlcu-0057",
+        "c_sn": "CA500-MIPI-zlxc-0059",
+        "u_sn": "MS500-H120-EP-zlcu-0059",
         "u_url": "127.0.0.1"
     },
     "response": {
-        "u_camera_id": 2620,
-        "u_unit_id": 1774,
-        "u_account_id": 165,
-        "password": "MSc170af!",
-        "device_token": "2b652c0e96fcbf8fd7fa75a1adc76658dd1c2bfb",
+        "u_camera_id": 2622,
+        "u_unit_id": 1776,
+        "u_account_id": 167,
+        "password": "MS9a939c!",
+        "device_token": "c281dddf4df0d7bf10df1a5df90470777271364b",
         "c_sensor": "100B50501A2101018164011000000000"
     }
 }

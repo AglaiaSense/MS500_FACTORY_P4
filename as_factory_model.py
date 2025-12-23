@@ -9,7 +9,7 @@ MS500 AI 模型工厂烧录工具
 
 使用前准备:
 1. 准备模型文件:
-   - 在 as_model_conversion/type_model/ 目录下创建模型目录 (例如: ped_alerm)
+   - 在 as_model_conversion/type_model/ 目录下创建模型目录 (例如: ped_alarm)
    - 将 packerOut.zip 文件放入该目录
    - 将 network_info.txt 文件放入该目录
 
@@ -85,16 +85,6 @@ def main(port=None, model_type=None, bin_type=None):
         print(f"\n✓ 步骤 1 完成: spiffs_dl 目录已生成")
         print(f"  路径: {spiffs_dl_dir}")
 
-        # 步骤2: 调用 as_model_flash.py 创建并烧录 storage_dl.bin
-        print("\n" + "=" * 80)
-        print("【步骤 2/3】 创建并烧录 storage_dl.bin")
-        print("=" * 80)
-
-        if not as_model_flash.main(use_port, spiffs_dl_dir, use_bin_type):
-            print("\n✗ 步骤 2 失败: 烧录模型失败")
-            return 1
-
-        print(f"\n✓ 步骤 2 完成: storage_dl.bin 已烧录")
 
         # 步骤3: 调用 as_model_flag.py 添加 is_model_update=1 并更新 NVS
         print("\n" + "=" * 80)
@@ -106,6 +96,19 @@ def main(port=None, model_type=None, bin_type=None):
             return 1
 
         print(f"\n✓ 步骤 3 完成: is_model_update=1 已设置并烧录")
+
+        # 步骤2: 调用 as_model_flash.py 创建并烧录 storage_dl.bin
+        print("\n" + "=" * 80)
+        print("【步骤 2/3】 创建并烧录 storage_dl.bin")
+        print("=" * 80)
+
+        if not as_model_flash.main(use_port, spiffs_dl_dir, use_bin_type):
+            print("\n✗ 步骤 2 失败: 烧录模型失败")
+            return 1
+
+        print(f"\n✓ 步骤 2 完成: storage_dl.bin 已烧录")
+
+
 
         # 完成
         print("\n" + "=" * 80)

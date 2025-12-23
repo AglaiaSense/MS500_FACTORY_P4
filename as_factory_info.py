@@ -19,7 +19,8 @@ from as_nvs_flash import (
 # 使用 esp_components 提供的 esptool 路径
 ESPTOOL = get_esptool()
 PORT = "COM4"  # 修改为实际端口
-BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+# BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+BIN_TYPE = "ped_alarm"  # 固件类型
 
 # 临时文件目录
 TEMP_DIR = "temp"
@@ -158,7 +159,6 @@ def request_server(mac, existing_info=None):
                 print(f"从 NVS 中读取到 g_camera_id: {g_camera_id}")
 
         # 导入 as_dm_register 模块
-        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'as_dm_register'))
         from as_dm_register import register_device
 
         # 调用注册函数，传入参数

@@ -39,11 +39,11 @@ PORT = "COM4"
 
 # 固件类型（对应 as_flash_firmware/bin_type/ 下的目录名）
 # 可选: "ms500_uvc", "sdk_uvc_tw_plate" "ped_alarm"
-BIN_TYPE = "ms500_uvc"
+BIN_TYPE = "ped_alarm"
 
 # 模型类型（对应 as_model_conversion/type_model/ 下的目录名）
-# 可选: "ped_alerm", "sdk_uvc_tw_plate" 等
-MODEL_TYPE = "ped_alerm"
+# 可选: "ped_alarm", "sdk_uvc_tw_plate" 等
+MODEL_TYPE = "ped_alarm"
 
 
 #------------------  主流程  ------------------

@@ -15,7 +15,7 @@ AI 模型认证和打包工具（优化版本）
 
     spiffs_dir = generate_model_by_device_id(
         device_id="100B50501A2101059064011000000000",
-        model_type="ped_alerm"
+        model_type="ped_alarm"
     )
 """
 
@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 # 导入 model_conversion 模块
-from model_conversion import model_convert
+from .model_conversion import model_convert
 
 
 #------------------  步骤 1: 创建工作目录  ------------------
@@ -80,7 +80,7 @@ def convert_model(device_id: str, model_type: str, output_dir: str, base_path: O
 
     参数:
         device_id: 设备 ID
-        model_type: 模型类型（如 "ped_alerm"）
+        model_type: 模型类型（如 "ped_alarm"）
         output_dir: 输出目录
         base_path: 基础路径
 
@@ -320,7 +320,7 @@ def generate_model_by_device_id(
 
     参数:
         device_id: 设备 ID（32位十六进制字符串）
-        model_type: 模型类型（如 "ped_alerm"），对应 type_model 下的目录名
+        model_type: 模型类型（如 "ped_alarm"），对应 type_model 下的目录名
         base_path: 基础路径，默认为 as_model_conversion 目录
 
     返回:
@@ -380,7 +380,7 @@ def main():
     if len(sys.argv) < 3:
         print("使用方法: python as_model_auth.py <device_id> <model_type>")
         print("\n示例:")
-        print("  python as_model_auth.py 100B50501A2101026964011000000000 ped_alerm")
+        print("  python as_model_auth.py 100B50501A2101026964011000000000 ped_alarm")
         sys.exit(1)
 
     device_id_arg = sys.argv[1]
@@ -399,7 +399,7 @@ def main():
 if __name__ == "__main__":
     # 方式1：使用变量传参（直接运行时修改这里的变量）
     device_id = "100B50501A2101059064011000000000"
-    model_type = "ped_alerm"
+    model_type = "ped_alarm"
 
     # 调用主函数
     result = generate_model_by_device_id(device_id, model_type)

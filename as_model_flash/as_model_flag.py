@@ -9,12 +9,11 @@ import sys
 import subprocess
 
 # 导入 ESP 组件工具
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from esp_components import get_esptool, get_baud_rate
 
 # 导入分区工具
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "as_flash_firmware"))
-from as_spifs_partition import get_nvs_info
+from as_flash_firmware import get_nvs_info
 
 # 导入 as_nvs_flash 模块
 from as_nvs_flash import (
@@ -203,13 +202,13 @@ def main(port, bin_type, reset_device=True):
             print("\n✗ 烧录新的 NVS bin 失败")
             return False
 
-        # 步骤7: 重启 ESP32（可选）
-        if reset_device:
-            if not reset_esp32(port):
-                print("\n✗ 重启 ESP32 失败")
-                return False
-
-        print("\n✓ 模型标志更新成功完成")
+        # # 步骤7: 重启 ESP32（可选）
+        # if reset_device:
+        #     if not reset_esp32(port):
+        #         print("\n✗ 重启 ESP32 失败")
+        #         return False
+        #
+        # print("\n✓ 模型标志更新成功完成")
         return True
 
     except KeyboardInterrupt:

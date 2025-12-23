@@ -9,12 +9,11 @@ import sys
 import subprocess
 
 # 导入 ESP 组件工具
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from esp_components import get_esptool
 
 # 导入分区工具
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "as_flash_firmware"))
-from as_spifs_partition import get_nvs_info
+from as_flash_firmware import get_nvs_info
 
 # 导入 as_nvs_flash 模块
 from as_nvs_flash import (
@@ -24,8 +23,7 @@ from as_nvs_flash import (
 )
 
 # 导入 as_model_conversion/as_model_auth 模块
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "as_model_conversion"))
-from as_model_auth import generate_model_by_device_id
+from as_model_conversion import generate_model_by_device_id
 
 
 #------------------  配置区  ------------------
@@ -119,7 +117,7 @@ def generate_model_files(device_id, model_type):
 
     参数:
         device_id: 设备 ID
-        model_type: 模型类型（如 "ped_alerm"）
+        model_type: 模型类型（如 "ped_alarm"）
 
     返回:
         生成的 spiffs_dl 目录路径，失败返回 None
@@ -198,7 +196,7 @@ def main(port, model_type, bin_type):
 if __name__ == "__main__":
     # 方式1：使用变量传参（直接运行时修改这里的变量）
     port = "COM4"
-    model_type = "ped_alerm"
+    model_type = "ped_alarm"
     bin_type = "sdk_uvc_tw_plate"  # 固件类型
 
     result = main(port, model_type, bin_type)
@@ -208,7 +206,7 @@ if __name__ == "__main__":
     # if len(sys.argv) < 4:
     #     print("使用方法: python as_model_down.py <port> <model_type> <bin_type>")
     #     print("\n示例:")
-    #     print("  python as_model_down.py COM4 ped_alerm sdk_uvc_tw_plate")
+    #     print("  python as_model_down.py COM4 ped_alarm sdk_uvc_tw_plate")
     #     sys.exit(1)
     #
     # port_arg = sys.argv[1]

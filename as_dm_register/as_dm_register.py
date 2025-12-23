@@ -26,7 +26,7 @@ import os
 import sys
 
 # 导入 as_dm_api 模块
-from as_dm_api import (
+from .as_dm_api import (
     StreamingEndpoint,
     ADMIN_TOKEN,
     DEFAULT_TIMEOUT,

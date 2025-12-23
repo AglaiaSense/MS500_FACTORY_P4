@@ -4,9 +4,7 @@ import subprocess
 import csv
 
 # 导入 ESP 组件工具
-# 添加父目录到路径以导入 esp_components
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parent_dir)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from esp_components import get_esptool, get_baud_rate, test_port_connection
 
 # 设置 Windows 控制台编码为 UTF-8

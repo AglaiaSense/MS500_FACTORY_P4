@@ -11,7 +11,7 @@ import shutil
 from pathlib import Path
 
 # 导入 ESP 组件工具
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from esp_components import (
     get_esp_idf_python,
     get_fatfs_gen_tool,
@@ -20,8 +20,7 @@ from esp_components import (
 )
 
 # 导入分区工具
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "as_flash_firmware"))
-from as_spifs_partition import get_storage_dl_info
+from as_flash_firmware import get_storage_dl_info
 
 
 #------------------  配置区  ------------------
