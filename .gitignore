@@ -208,6 +208,5 @@ __marimo__/
 .idea/
 as_model_conversion/person_alerm/output/
 as_model_conversion/person_alerm/temp/
-*.csv
 temp/
 .claude/
