@@ -9,10 +9,13 @@ from pathlib import Path
 # 获取esp_components目录的绝对路径
 ESP_COMPONENTS_DIR = Path(__file__).parent.absolute()
 
+# 获取项目根目录
+PROJECT_ROOT = ESP_COMPONENTS_DIR.parent
+
 # ========== ESP-IDF 工具路径配置 ==========
 
-# ESP-IDF Python 环境路径（使用本地esp_components中的Python环境）
-ESP_IDF_PYTHON = str(ESP_COMPONENTS_DIR / "python_env" / "Scripts" / "python.exe")
+# ESP-IDF Python 环境路径（使用项目根目录的.venv虚拟环境）
+ESP_IDF_PYTHON = str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe")
 
 # ESP-IDF NVS 工具路径（使用本地工具）
 NVS_TOOL_PATH = str(ESP_COMPONENTS_DIR / "nvs_tools" / "nvs_tool.py")
@@ -20,14 +23,15 @@ NVS_TOOL_PATH = str(ESP_COMPONENTS_DIR / "nvs_tools" / "nvs_tool.py")
 # FAT 文件系统镜像生成工具路径（使用本地工具）
 FATFS_GEN_TOOL = str(ESP_COMPONENTS_DIR / "fatfs_tools" / "wl_fatfsgen.py")
 
-# ESP32 烧录工具（使用本地Python环境中的esptool）
-ESPTOOL = str(ESP_COMPONENTS_DIR / "python_env" / "Scripts" / "esptool.exe")
+# ESP32 烧录工具（使用.venv虚拟环境中的esptool）
+ESPTOOL = str(PROJECT_ROOT / ".venv" / "Scripts" / "esptool.exe")
 
 # 使用 ESP-IDF 的 NVS 分区生成模块（仅用于生成 BIN）
 NVS_GEN_MODULE = "esp_idf_nvs_partition_gen"
 
 # 默认串口波特率配置
 BAUD_RATE = "460800"
+# BAUD_RATE = "115200"
 
 
 # ========== 工具获取函数 ==========

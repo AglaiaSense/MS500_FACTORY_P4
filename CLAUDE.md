@@ -32,9 +32,10 @@ MS500 工厂生产系统 - 用于 MS500 ESP32-P4 摄像头设备的综合性工�
 
 ### Python 环境
 
-- ESP-IDF Python 环境已内置在 `esp_components/python_env/`
-- Python 版本：3.12.6
+- 项目使用 `.venv` 虚拟环境（位于项目根目录）
+- Python 版本要求：3.12.x
 - 包含所有必需的 ESP-IDF 工具和依赖
+- 虚拟环境配置详见 `PYTHON_ENV_SETUP.md`
 
 ## 核心架构
 
@@ -52,14 +53,10 @@ MS500 工厂生产系统 - 用于 MS500 ESP32-P4 摄像头设备的综合性工�
 
 ### ESP 组件系统
 
-`esp_components/` 目录包含一个自包含的 ESP-IDF 工具链：
+`esp_components/` 目录包含 ESP-IDF 工具链管理模块：
 
 ```
 esp_components/
-├── python_env/              # 本地 Python 3.12.6 虚拟环境
-│   └── Scripts/
-│       ├── python.exe       # Python 解释器
-│       └── esptool.exe      # ESP32 烧录工具（v4.10.0）
 ├── nvs_tools/              # NVS 分区工具
 │   ├── nvs_tool.py         # ESP-IDF 官方 NVS 解析器
 │   ├── nvs_parser.py
@@ -69,16 +66,17 @@ esp_components/
 │   ├── wl_fatfsgen.py
 │   ├── fatfsgen.py
 │   └── fatfs_utils/        # 11 个工具文件
-└── esp_tools.py            # 统一工具路径配置
+├── esp_tools.py            # 统一工具路径配置（指向 .venv）
+└── __init__.py             # 导出统一接口
 ```
 
-**关键架构决策**：所有 ESP-IDF 依赖都在本地打包，消除外部 ESP-IDF 安装要求。通过 `esp_components` 模块访问工具：
+**关键架构决策**：项目使用 `.venv` 虚拟环境（位于项目根目录），包含所有 ESP-IDF 工具。通过 `esp_components` 模块访问工具：
 
 ```python
 from esp_components import (
-    get_esp_idf_python,    # 返回本地 Python 路径
+    get_esp_idf_python,    # 返回 .venv/Scripts/python.exe
     get_nvs_tool_path,     # 返回 NVS 工具路径
-    get_esptool,           # 返回 esptool 路径
+    get_esptool,           # 返回 .venv/Scripts/esptool.exe
     get_fatfs_gen_tool,    # 返回 FAT 生成器路径
     get_nvs_gen_module     # 返回模块名称
 )
@@ -352,11 +350,11 @@ temp/
 
 5. **FAT 文件系统限制**：storage_dl 分区使用带长文件名支持的 FAT12/16。目录深度和文件名长度有实际限制。
 
-6. **Python 虚拟环境**：捆绑的 Python 环境（`esp_components/python_env/`）依赖于系统 Python（C:\Python312）。这是一个虚拟环境，而非独立的 Python。
+6. **Python 虚拟环境**：项目使用 `.venv` 虚拟环境（位于项目根目录）。环境配置详见 `PYTHON_ENV_SETUP.md`。所有 ESP-IDF 工具通过 `esp_components` 模块自动引用此环境。
 
 7. **设备 ID 格式**：`g_camera_id` 是 32 字符十六进制字符串（例如："100B50501A2101026964011000000000"）。此格式对模型认证系统至关重要。
 
-8. **波特率调优**：默认波特率为 115200 以确保兼容性。如果硬件支持，可以增加到 460800/921600 以加快烧录速度（参见 `as_model_flash.py:62`）。
+8. **波特率调优**：默认波特率为 460800。如果硬件不稳定，可以降低到 115200 以确保兼容性（参见 `esp_tools.py:30`）。
 
 ## 测试和验证
 

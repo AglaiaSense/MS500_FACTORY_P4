@@ -1,0 +1,88 @@
+# ESP-IDF Python Environment Dependencies
+# Project virtual environment: .venv
+# Python Version: 3.12.x
+#
+# Installation Instructions:
+# 1. Create a virtual environment: python -m venv .venv
+# 2. Activate the virtual environment:
+#    - Windows: .venv\Scripts\activate
+#    - Linux/Mac: source .venv/bin/activate
+# 3. Install dependencies: pip install -r requirements.txt
+
+# Core ESP-IDF Tools
+esptool==4.10.0
+esp-idf-monitor==1.8.0
+esp-idf-kconfig==2.5.0
+esp-idf-size==1.7.1
+esp_idf_nvs_partition_gen==0.1.9
+esp_idf_panic_decoder==1.4.2
+esp-coredump==1.14.0
+idf-component-manager==2.4.2
+
+# ESP32 Related Libraries
+pyelftools==0.32
+reedsolo==1.7.0
+bitarray==3.8.0
+bitstring==4.3.1
+construct==2.10.70
+intelhex==2.3.0
+
+# Serial Communication
+pyserial==3.5
+
+# Cryptography & Security
+cryptography==44.0.3
+ecdsa==0.19.1
+
+# HTTP & Networking
+requests==2.32.5
+urllib3==1.26.20
+requests-file==3.0.1
+requests-toolbelt==1.0.0
+certifi==2025.11.12
+idna==3.11
+
+# Configuration & Parsing
+PyYAML==6.0.3
+ruamel.yaml==0.18.16
+ruamel.yaml.clib==0.2.15
+jsonref==1.1.0
+pyparsing==3.2.5
+
+# Pydantic for Data Validation
+pydantic==2.12.5
+pydantic_core==2.41.5
+pydantic-settings==2.12.0
+annotated-types==0.7.0
+typing_extensions==4.15.0
+typing-inspection==0.4.2
+
+# CLI & UI Tools
+click==8.1.8
+rich==14.2.0
+colorama==0.4.6
+tqdm==4.67.1
+Pygments==2.19.2
+markdown-it-py==4.0.0
+mdurl==0.1.2
+
+# Development & Debugging Tools
+pygdbmi==0.11.0.0
+freertos-gdb==1.0.4
+pyclang==0.6.3
+
+# System Tools
+psutil==7.1.3
+python-dotenv==1.2.0
+truststore==0.10.4
+windows-curses==2.4.1
+
+# Build Tools
+cffi==2.0.0
+pycparser==2.23
+charset-normalizer==3.4.4
+packaging==25.0
+six==1.17.0
+
+# Note: Ensure you have Python 3.12.x installed before creating the virtual environment
+# The project is configured to use the .venv virtual environment in the project root directory
