@@ -5,7 +5,7 @@ import csv
 
 # 导入 ESP 组件工具
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from esp_components import get_esptool, get_baud_rate, test_port_connection
+from esp_components import get_esptool, get_baud_rate, test_port_connection, run_command
 
 # 设置 Windows 控制台编码为 UTF-8
 if sys.platform == "win32":
@@ -200,7 +200,7 @@ def flash_firmware(port,bin_dir):
     print("开始烧录...")
     print("-" * 60)
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = run_command(cmd, print_cmd=False)
 
     # 打印烧录过程输出
     if result.stdout:

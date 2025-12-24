@@ -17,6 +17,7 @@ from esp_components import (
     get_fatfs_gen_tool,
     get_esptool,
     get_baud_rate,
+    run_command,
 )
 
 # 导入分区工具
@@ -122,8 +123,7 @@ def create_storage_dl_bin(spiffs_dl_dir, bin_type):
             "--long_name_support",  # 启用长文件名支持
         ]
 
-        print(f"\n执行命令: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = run_command(cmd)
 
         if result.returncode != 0:
             print("\n错误: 生成 storage_dl.bin 失败")
@@ -177,12 +177,11 @@ def flash_storage_dl_bin(port, storage_dl_bin, bin_type):
         print(f"\nstorage_dl partition offset (from {bin_type}): {storage_dl_offset}")
 
         cmd = [ESPTOOL, "--port", port, "--baud", BAUD_RATE, "write_flash", storage_dl_offset, storage_dl_bin]
-        print(f"执行命令: {' '.join(cmd)}")
         print(f"使用波特率: {BAUD_RATE}")
         print("正在烧录... (可能需要一段时间)\n")
 
         # 不捕获输出，让 esptool 的进度信息实时显示
-        result = subprocess.run(cmd)
+        result = run_command(cmd, capture_output=False)
 
         if result.returncode != 0:
             print("\n错误: 烧录 storage_dl.bin 失败")

@@ -10,7 +10,7 @@ import subprocess
 
 # 导入 ESP 组件工具
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from esp_components import get_esptool
+from esp_components import get_esptool, run_command
 
 # 导入分区工具
 from as_flash_firmware import get_nvs_info
@@ -65,9 +65,7 @@ def read_device_id_from_nvs(port, bin_type):
         nvs_raw_bin = get_nvs_raw_bin_path()
 
         cmd = [ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, nvs_raw_bin]
-        print(f"执行命令: {' '.join(cmd)}")
-
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = run_command(cmd)
 
         if result.returncode != 0:
             print("\n错误: 从设备读取 NVS 失败")

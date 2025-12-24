@@ -1,6 +1,6 @@
 """
 ESP-IDF 工具路径配置模块
-统一管理所有 ESP-IDF 相关工具的路径和配置
+统一管理所有 ESP-IDF 相关工具的路径和配置，以及统一的命令执行函数
 """
 
 import os
@@ -77,16 +77,12 @@ def test_port_connection(port):
     异常:
         连接失败时抛出 RuntimeError
     """
-    import subprocess
-
     print("\n" + "=" * 60)
     print("步骤2: 测试串口连接")
     print("=" * 60)
 
     cmd = [ESPTOOL, "--port", port, "chip_id"]
-    print(f"执行命令: {' '.join(cmd)}")
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = run_command(cmd)
 
     if result.returncode != 0:
         print("\n" + "!" * 60)
@@ -120,6 +116,68 @@ def test_port_connection(port):
     print("\n✓ 串口连接测试成功")
 
     return True
+
+
+# ========== 命令执行函数 ==========
+
+def run_command(cmd, capture_output=True, text=True, print_cmd=True, timeout=None, **kwargs):
+    """
+    统一的命令执行函数
+
+    参数:
+        cmd: 命令列表 (例如: [ESPTOOL, "--port", "COM4", "read_mac"])
+        capture_output: 是否捕获输出 (默认 True)
+        text: 是否以文本模式输出 (默认 True)
+        print_cmd: 是否打印命令 (默认 True)
+        timeout: 超时时间（秒）
+        **kwargs: 其他传递给 subprocess.run 的参数
+
+    返回:
+        subprocess.CompletedProcess 对象
+    """
+    import subprocess
+
+    if print_cmd:
+        print(f"执行命令: {' '.join(cmd)}")
+
+    return subprocess.run(
+        cmd,
+        capture_output=capture_output,
+        text=text,
+        timeout=timeout,
+        **kwargs
+    )
+
+
+def run_command_with_error_check(cmd, error_message="命令执行失败", print_cmd=True, **kwargs):
+    """
+    执行命令并检查返回码，失败时抛出异常
+
+    参数:
+        cmd: 命令列表
+        error_message: 错误消息
+        print_cmd: 是否打印命令
+        **kwargs: 其他传递给 run_command 的参数
+
+    返回:
+        subprocess.CompletedProcess 对象
+
+    异常:
+        RuntimeError: 命令执行失败时抛出
+    """
+    result = run_command(cmd, print_cmd=print_cmd, **kwargs)
+
+    if result.returncode != 0:
+        error_details = []
+        if result.stdout and result.stdout.strip():
+            error_details.append(f"STDOUT: {result.stdout}")
+        if result.stderr and result.stderr.strip():
+            error_details.append(f"STDERR: {result.stderr}")
+
+        full_error = f"{error_message}\n" + "\n".join(error_details) if error_details else error_message
+        raise RuntimeError(full_error)
+
+    return result
 
 
 # ========== 工具验证函数 ==========

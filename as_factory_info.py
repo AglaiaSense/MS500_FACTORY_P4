@@ -4,7 +4,7 @@ import subprocess
 import time
 
 # 导入 ESP 组件工具
-from esp_components import get_esptool
+from esp_components import get_esptool, run_command
 
 # 导入 NVS 工具模块
 from as_nvs_flash import (
@@ -18,9 +18,6 @@ from as_nvs_flash import (
 # ========== 配置区 ==========
 # 使用 esp_components 提供的 esptool 路径
 ESPTOOL = get_esptool()
-PORT = "COM4"  # 修改为实际端口
-# BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
-BIN_TYPE = "ped_alarm"  # 固件类型
 
 # 临时文件目录
 TEMP_DIR = "temp"
@@ -52,8 +49,7 @@ def test_read_mac(port):
     print("=" * 60)
 
     cmd = [ESPTOOL, "--port", port, "read_mac"]
-    print(f"执行命令: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = run_command(cmd)
 
     # 检查是否成功
     if result.returncode != 0:
@@ -195,17 +191,16 @@ def request_server(mac, existing_info=None):
 
 #------------------ 主流程 ------------------
 
-def main(port=None, bin_type=None):
+def main(port, bin_type):
     """
     工厂生产流程主函数
 
     Args:
-        port: 串口号，默认使用全局配置
-        bin_type: 固件类型，默认使用全局配置
+        port: 串口号（必需）
+        bin_type: 固件类型（必需）
     """
-    # 使用传入的参数或全局配置
-    use_port = port if port is not None else PORT
-    use_bin_type = bin_type if bin_type is not None else BIN_TYPE
+    use_port = port
+    use_bin_type = bin_type
 
     print("=" * 60)
     print("  MS500-EP 工厂生产程序")
@@ -251,9 +246,11 @@ def main(port=None, bin_type=None):
 
 
 if __name__ == "__main__":
-    # 正常生产模式
-    main()
 
-    # 仅测试串口连接（取消下面注释使用）
-    # PORT = "COM4"
-    # test_read_mac(PORT)
+    # 默认参数
+    PORT = "COM4"               # 串口号
+    BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+
+    # 执行主函数
+    sys.exit(main(PORT, BIN_TYPE))
+

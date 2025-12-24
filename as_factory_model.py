@@ -31,37 +31,23 @@ from as_model_flash import as_model_flash
 from as_model_flash import as_model_flag
 
 
-#------------------  配置区  ------------------
-
-# 串口号
-PORT = "COM4"
-
-# 模型类型（对应 as_model_conversion/type_model/ 下的目录名）
-MODEL_TYPE = "ped_alerm"
-
-# 固件类型（对应 as_flash_firmware/bin_type/ 下的目录名）
-# BIN_TYPE = "sdk_uvc_tw_plate"
-BIN_TYPE = "ped_alarm"
-
-
 #------------------  主流程  ------------------
 
-def main(port=None, model_type=None, bin_type=None):
+def main(port, model_type, bin_type):
     """
     主函数 - 完整的 AI 模型工厂烧录流程
 
     参数:
-        port: 串口号，默认使用全局配置
-        model_type: 模型类型，默认使用全局配置
-        bin_type: 固件类型，默认使用全局配置
+        port: 串口号（必需）
+        model_type: 模型类型（必需）
+        bin_type: 固件类型（必需）
 
     返回:
         成功返回 0，失败返回 1
     """
-    # 使用传入的参数或全局配置
-    use_port = port if port is not None else PORT
-    use_model_type = model_type if model_type is not None else MODEL_TYPE
-    use_bin_type = bin_type if bin_type is not None else BIN_TYPE
+    use_port = port
+    use_model_type = model_type
+    use_bin_type = bin_type
 
     print("=" * 80)
     print("  MS500 AI 模型工厂烧录工具")
@@ -119,7 +105,7 @@ def main(port=None, model_type=None, bin_type=None):
         print(f"固件类型: {use_bin_type}")
         print(f"SPIFFS DL 目录: {spiffs_dl_dir}")
         print(f"is_model_update: 1")
-        print("\n设备已重启。模型更新将在启动时处理。")
+
 
         return 0
 
@@ -134,4 +120,10 @@ def main(port=None, model_type=None, bin_type=None):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # 默认参数
+    PORT = "COM4"               # 串口号
+    MODEL_TYPE = "sdk_uvc_tw_plate"    # 模型类型
+    BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+
+    # 执行主函数
+    sys.exit(main(PORT, MODEL_TYPE, BIN_TYPE))

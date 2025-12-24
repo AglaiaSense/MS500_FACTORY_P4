@@ -20,6 +20,8 @@ from .esp_tools import (
     get_nvs_gen_module,
     get_baud_rate,
     test_port_connection,
+    run_command,
+    run_command_with_error_check,
 )
 
 __all__ = [
@@ -30,4 +32,6 @@ __all__ = [
     "get_nvs_gen_module",
     "get_baud_rate",
     "test_port_connection",
+    "run_command",
+    "run_command_with_error_check",
 ]

@@ -13,7 +13,7 @@ import subprocess
 
 # 导入 ESP 组件工具
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from esp_components import get_esp_idf_python, get_nvs_gen_module, get_esptool
+from esp_components import get_esp_idf_python, get_nvs_gen_module, get_esptool, run_command
 
 # 导入分区工具
 from as_flash_firmware import get_nvs_info
@@ -133,8 +133,7 @@ def generate_nvs_data(info, existing_nvs=None, bin_type="sdk_uvc_tw_plate"):
         UPDATE_BIN,
         nvs_size,
     ]
-    print(f"执行命令: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = run_command(cmd)
 
     # 打印返回码
     print(f"命令返回码: {result.returncode}")
@@ -197,8 +196,7 @@ def flash_nvs(port, bin_type="sdk_uvc_tw_plate"):
     print(f"NVS partition offset (from {bin_type}): {nvs_offset}")
 
     cmd = [ESPTOOL, "--port", port, "write_flash", nvs_offset, UPDATE_BIN]
-    print(f"执行命令: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = run_command(cmd)
 
     if result.returncode != 0:
         print("\n" + "!" * 60)

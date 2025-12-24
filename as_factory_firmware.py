@@ -26,33 +26,21 @@ import sys
 from as_flash_firmware.as_firmware_tool import flash_firmware_with_config
 
 
-#------------------  配置区  ------------------
-
-# 串口号
-PORT = "COM4"
-
-# 固件类型（对应 as_flash_firmware/bin_type/ 下的目录名）
-# 可选: "ms500_uvc", "sdk_uvc_tw_plate" 等
-BIN_TYPE = "ms500_uvc"
-# BIN_TYPE = "ped_alarm"
-
-
 #------------------  主函数  ------------------
 
-def main(port=None, bin_type=None):
+def main(port, bin_type):
     """
     主函数 - 固件烧录流程
 
     参数:
-        port: 串口号，默认使用全局配置
-        bin_type: 固件类型，默认使用全局配置
+        port: 串口号（必需）
+        bin_type: 固件类型（必需）
 
     返回:
         成功返回 True，失败返回 False
     """
-    # 使用传入的参数或全局配置
-    use_port = port if port is not None else PORT
-    use_bin_type = bin_type if bin_type is not None else BIN_TYPE
+    use_port = port
+    use_bin_type = bin_type
 
     print("=" * 80)
     print("  MS500 固件工厂烧录工具")
@@ -87,5 +75,10 @@ def main(port=None, bin_type=None):
 
 
 if __name__ == "__main__":
-    result = main()
-    sys.exit(0 if result else 1)
+
+    # 默认参数
+    PORT = "COM4"               # 串口号
+    BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+
+    # 执行主函数
+    sys.exit(main(PORT, BIN_TYPE))

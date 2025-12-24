@@ -1,540 +1,427 @@
-# MS500 出厂生产程序
+# MS500 工厂生产系统
 
-MS500 设备出厂注册与 NVS 数据管理工具集，用于将设备注册到服务器并烧录配置信息。
+MS500 ESP32-P4 摄像头设备的综合性工厂生产工具，用于设备注册、固件烧录和 AI 模型部署。
 
----
+## 项目概述
 
-## 整体工厂生产流程
+本系统提供完整的工厂生产流程，包括：
+- 设备注册和 NVS 数据管理
+- 固件烧录
+- AI 模型转换和烧录
 
-完整的工厂生产流程如下：
+所有配置参数集中在 `as_ms500_config.json` 中管理，支持灵活配置。
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        MS500 工厂生产流程                              │
-└─────────────────────────────────────────────────────────────────────┘
+## 快速开始
 
-1. 连接设备
-   └─> 使用 esptool 连接 ESP32 设备（COM4）
-   └─> 初始化 temp/ 临时目录
+### 1. 配置参数
 
-2. 读取设备 Flash NVS 分区
-   └─> 从偏移地址 0x9000 读取 64KB NVS 数据到 temp/ms500_nvs.bin
-   └─> 自动读取设备 MAC 地址
-
-3. 检查设备是否已注册
-   └─> 使用官方 nvs_tool.py 解析 NVS 数据（由 as_nvs_tool 模块处理）
-   └─> 如果已注册，询问是否重新注册
-
-4. 向服务器注册设备
-   └─> 调用 as_service_register.py 注册设备
-   └─> 获取设备信息（SN、Token、Camera ID、Unit ID）
-
-5. 生成并烧录 NVS 数据
-   └─> 生成 NVS CSV 文件（temp/factory_data.csv）
-   └─> 生成 NVS BIN 文件（temp/factory_nvs.bin）
-   └─> 烧录到 Flash 偏移地址 0x9000
-
-6. 完成
-   └─> 显示设备注册信息（SN、MAC、Camera ID、Unit ID）
-```
-
----
-
-## 使用配置
-
-在运行工厂生产程序之前，需要先进行以下配置：
-
-### 1. 配置 ESP-IDF 环境路径
-
-**修改 as_nvs_tool.py 文件中的路径配置：**
-
-```python
-# ESP-IDF Python 环境路径（根据你的电脑环境修改）
-ESP_IDF_PYTHON = r"C:\Users\xiuxin\Desktop\esp-idf\python_env\idf5.4_py3.12_env\Scripts\python.exe"
-
-# ESP-IDF 官方 NVS 工具路径（根据你的电脑环境修改）
-NVS_TOOL_PATH = r"C:\Users\xiuxin\Desktop\esp-idf\frameworks\esp-idf-v5.4.1\components\nvs_flash\nvs_partition_tool\nvs_tool.py"
-```
-
-**修改 main.py 文件中的工具配置：**
-
-```python
-# 工具路径（根据你的电脑环境修改，通常在 PATH 中可直接使用）
-ESPTOOL = "esptool"
-```
-
-### 2. 配置设备串口
-
-**修改 main.py 文件中的串口配置：**
-
-```python
-def main():
-    PORT = "COM4"  # 修改为实际端口，如 COM3、COM5 等
-```
-
-**如何查看设备串口：**
-
-- Windows：设备管理器 → 端口(COM 和 LPT)
-- Linux/Mac：`ls /dev/ttyUSB*` 或 `ls /dev/ttyACM*`
-
-### 3. 设备进入烧录模式
-
-**在运行程序前，确保设备已进入 DOWNLOAD 模式：**
-
-连接设备后，在串口工具（如 Putty、SecureCRT）中查看输出，应看到类似信息：
-
-```
-rst:0x1 (POWERON),boot:0x107 (DOWNLOAD(USB/UART0/SPI))
-waiting for download
-```
-
-**进入烧录模式的方法：**
-
-1. **自动模式**：如果开发板支持 DTR/RTS 自动复位，esptool 会自动进入烧录模式
-2. **手动模式**：
-   - 按住 **Boot** 按钮
-   - 按一下 **Reset** 按钮
-   - 松开 **Boot** 按钮
-   - 设备进入烧录模式
-
-### 4. 配置服务器信息
-
-**修改 ms500.json 文件：**
+编辑 `as_ms500_config.json` 文件，设置必要的参数：
 
 ```json
 {
-  "server_url": "https://your-server.com",
-  "c_sn": "MS500-H090-EP-2549-0001",
-  "for_organization": "your-org-id",
-  "u_url": "127.0.0.1"
+  "server_url": "http://192.168.0.6:8000",
+  "c_sn": "CA500-MIPI-zlxc-0059",
+  "u_sn": "MS500-H120-EP-zlcu-0059",
+  "PORT": "COM4",
+  "BIN_TYPE": "ped_alarm",
+  "MODEL_TYPE": "ped_alarm"
 }
 ```
 
-**必填参数：**
+**参数说明：**
+- `server_url`: 服务器地址
+- `c_sn`: 相机序列号（全局唯一）
+- `u_sn`: 单元序列号（全局唯一）
+- `PORT`: 串口号（Windows: COM4, Linux: /dev/ttyUSB0）
+- `BIN_TYPE`: 固件类型（对应 as_flash_firmware/bin_type/ 下的目录名）
+- `MODEL_TYPE`: 模型类型（对应 as_model_conversion/type_model/ 下的目录名）
 
-- `server_url` - 服务器地址
-- `c_sn` - 设备序列号（必须唯一，每台设备不同）
-- `u_url` - 设备 URL 地址（默认 127.0.0.1）
+### 2. 准备固件和模型
 
----
+**固件文件：**
+将固件文件放在 `as_flash_firmware/bin_type/{BIN_TYPE}/` 目录下：
+- `bootloader.bin`
+- `ms500_p4.bin`
+- `partition-table.bin`
+- `partitions.csv`
+- `ota_data_initial.bin`
+- `storage.bin`
 
-## 使用方法
+**模型文件：**
+将模型文件放在 `as_model_conversion/type_model/{MODEL_TYPE}/` 目录下：
+- `packerOut.zip`
+- `network_info.txt`
+
+### 3. 运行程序
+
+#### 方式 1: 一键完整流程（推荐）
+
+运行 `main.py` 执行完整的工厂生产流程：
 
 ```bash
-# 工厂生产程序（一键完成所有步骤）
-cd pc_client/python_factory
 python main.py
 ```
 
----
+完整流程包括：
+1. 参数注册（NVS 烧录）
+2. 固件烧录
+3. 模型烧录
 
-## 代码架构
+#### 方式 2: 单独运行各模块
 
-### 模块化设计
-
-```
-python_factory/
-├── main.py                    # 主程序：流程控制
-├── as_nvs_tool.py            # NVS 工具模块：NVS 数据处理
-├── as_service_register.py    # 设备注册模块：服务器注册
-├── ms500.json                # 配置文件
-└── temp/                     # 临时文件目录
-    ├── ms500_nvs.bin
-    ├── factory_decoded.csv
-    ├── factory_data.csv
-    └── factory_nvs.bin
-```
-
----
-
-## 1. main.py
-
-**主程序：工厂生产流程控制**
-
-一键完成设备注册和 NVS 数据烧录的完整流程。
-
-### 1.1 功能说明
-
-main.py 协调各模块完成生产流程：
-
-1. **读取设备 Flash** - 连接设备并读取 NVS 分区数据
-2. **检查已有数据** - 调用 as_nvs_tool 解析 NVS，检查是否已注册
-3. **服务器注册** - 调用 as_service_register 向服务器注册设备
-4. **生成并烧录** - 调用 as_nvs_tool 生成 NVS 数据并烧录到设备
-
-### 1.2 使用方法
-
+**固件烧录：**
 ```bash
-# 运行完整的生产流程
+python as_factory_firmware.py
+```
+
+**设备注册和 NVS 烧录：**
+```bash
+python as_factory_info.py
+```
+
+**模型转换和烧录：**
+```bash
+python as_factory_model.py
+```
+
+## 核心模块说明
+
+### 1. as_factory_firmware.py - 固件烧录
+
+**功能：**
+- 从 `as_flash_firmware/bin_type/{BIN_TYPE}/` 目录读取固件文件
+- 根据 `partitions.csv` 自动解析分区地址
+- 烧录固件到 ESP32-P4
+
+**使用方法：**
+```python
+# 单独运行
+python as_factory_firmware.py
+
+# 或作为模块调用
+from as_factory_firmware import main
+result = main(port="COM4", bin_type="ped_alarm")
+```
+
+**烧录内容：**
+- Bootloader (0x2000)
+- Partition Table (0x8000)
+- OTA Data (动态地址)
+- 主应用程序 (动态地址)
+- Storage 分区 (动态地址)
+
+### 2. as_factory_info.py - 服务器注册设备并写入 Flash
+
+**功能：**
+- 连接设备并读取 MAC 地址
+- 读取并解析现有 NVS 数据
+- 向服务器注册设备（创建相机、单元、账户）
+- 生成 NVS 数据（CSV → BIN）
+- 烧录 NVS 分区到设备
+
+**使用方法：**
+```python
+# 单独运行
+python as_factory_info.py
+
+# 或作为模块调用
+from as_factory_info import main
+main(port="COM4", bin_type="ped_alarm")
+```
+
+**服务器注册流程：**
+1. 重置配置（保留基础参数）
+2. 查询相机（检查 c_sn 是否已注册）
+3. 创建相机（POST /camera/c/）
+4. 创建单元（POST /camera/u/）
+5. 创建账户（POST /account/a/）
+6. 获取设备令牌（POST /api-token-auth/）
+
+**NVS 数据字段：**
+- `c_sn`: 相机序列号
+- `u_sn`: 单元序列号
+- `device_token`: 服务器认证令牌
+- `u_camera_id`: 相机 ID
+- `u_unit_id`: 单元 ID
+- `u_account_id`: 账户 ID
+- `password`: 设备密码（格式：MS + MD5(u_sn)[:6] + !）
+- `server_url`: 服务器地址
+- `mac`: 设备 MAC 地址
+- `g_camera_id`: 全局相机 ID（用于模型认证）
+
+### 3. as_factory_model.py - 模型转换和烧录
+
+**功能：**
+- 从 NVS 读取 `g_camera_id`
+- 调用模型转换模块生成加密模型
+- 创建 FAT 文件系统镜像
+- 烧录模型到 storage_dl 分区
+- 更新 NVS 标志（is_model_update=1）
+- 重启设备
+
+**使用方法：**
+```python
+# 单独运行
+python as_factory_model.py
+
+# 或作为模块调用
+from as_factory_model import main
+result = main(port="COM4", model_type="ped_alarm", bin_type="ped_alarm")
+```
+
+**烧录流程：**
+1. 读取 device_id（从 NVS 的 g_camera_id）
+2. 生成加密模型（调用 as_model_conversion/as_model_auth.py）
+3. 创建 storage_dl.bin（FAT 文件系统）
+4. 烧录到 storage_dl 分区（偏移 0x8A0000，大小 7MB）
+5. 更新 NVS（添加 is_model_update=1）
+6. 烧录更新后的 NVS
+7. 重启设备
+
+### 4. main.py - 一键完整流程
+
+**功能：**
+- 从 `as_ms500_config.json` 读取配置参数
+- 依次执行参数注册、固件烧录、模型烧录
+- 提供完整的工厂生产流程
+
+**使用方法：**
+```bash
 python main.py
 ```
 
-### 1.3 配置说明
-
-修改 main.py 中的配置：
-
-```python
-# 工具路径
-ESPTOOL = "esptool"
-
-# 临时文件目录
-TEMP_DIR = "temp"
-
-# 串口端口
-PORT = "COM4"
-
-# NVS 分区配置
-NVS_OFFSET = "0x9000"
-NVS_SIZE = "0x10000"  # 64KB
+**执行流程：**
+```
+1. 读取配置 (as_ms500_config.json)
+   ↓
+2. 参数注册 (as_factory_info.py)
+   ↓
+3. 固件烧录 (as_factory_firmware.py)
+   ↓
+4. 模型烧录 (as_factory_model.py)
+   ↓
+5. 完成
 ```
 
-### 1.4 主要函数
-
-```python
-# 测试串口连接并读取 MAC 地址
-test_read_mac(port)
-
-# 步骤1：从设备读取 NVS 分区数据并获取 MAC 地址
-read_flash_and_mac(port)
-
-# 步骤3：调用 as_service_register 注册设备
-request_server(mac)
-
-# 步骤5：烧录 NVS 数据到设备
-flash_nvs(port)
-
-# 主流程函数
-main()
-```
-
-### 1.5 调用的外部模块
-
-```python
-import as_nvs_tool         # NVS 工具模块
-import as_service_register # 设备注册模块
-
-# 调用 as_nvs_tool 的函数
-as_nvs_tool.init_temp_dir()           # 初始化临时目录
-as_nvs_tool.get_nvs_raw_bin_path()    # 获取原始 BIN 路径
-as_nvs_tool.check_nvs_data()          # 检查并解码 NVS 数据
-as_nvs_tool.generate_nvs_data(info)   # 生成 NVS CSV 和 BIN
-as_nvs_tool.get_nvs_bin_path()        # 获取 NVS BIN 路径
-
-# 调用 as_service_register 的函数
-as_service_register.main()            # 注册设备
-```
-
----
-
-## 2. as_nvs_tool.py
-
-**NVS 工具模块：NVS 数据管理**
-
-封装所有 NVS 相关操作，包括解析、生成和格式转换。
-
-### 2.1 功能说明
-
-as_nvs_tool.py 提供完整的 NVS 数据管理功能：
-
-- 初始化临时目录管理
-- 使用官方 nvs_tool.py 解析 NVS 数据
-- 将官方工具输出转换为 CSV 格式
-- 生成 NVS CSV 和 BIN 文件
-- 提供文件路径访问接口
-
-### 2.2 配置说明
-
-```python
-# ESP-IDF Python 环境路径
-ESP_IDF_PYTHON = r"C:\Users\xiuxin\Desktop\esp-idf\python_env\idf5.4_py3.12_env\Scripts\python.exe"
-
-# ESP-IDF 官方 NVS 工具路径
-NVS_TOOL_PATH = r"C:\Users\xiuxin\Desktop\esp-idf\frameworks\esp-idf-v5.4.1\components\nvs_flash\nvs_partition_tool\nvs_tool.py"
-
-# 使用 ESP-IDF 的 NVS 分区生成模块
-NVS_GEN_MODULE = "esp_idf_nvs_partition_gen"
-
-# 临时文件目录
-TEMP_DIR = "temp"
-
-# 临时文件路径
-NVS_RAW_BIN = os.path.join(TEMP_DIR, "ms500_nvs.bin")
-DECODED_CSV = os.path.join(TEMP_DIR, "factory_decoded.csv")
-FACTORY_CSV = os.path.join(TEMP_DIR, "factory_data.csv")
-FACTORY_BIN = os.path.join(TEMP_DIR, "factory_nvs.bin")
-
-# NVS 分区配置
-NVS_OFFSET = "0x9000"
-NVS_SIZE = "0x10000"  # 64KB
-```
-
-### 2.3 主要函数
-
-```python
-# 初始化临时文件目录
-init_temp_dir()
-
-# 将 nvs_tool.py 的输出转换为 CSV 格式
-convert_to_csv(nvs_output, output_file)
-
-# 检查并解码 NVS 数据，判断设备是否已有注册信息
-check_nvs_data()
-
-# 生成 NVS CSV 和 BIN 文件
-generate_nvs_data(info)
-
-# 获取生成的 NVS BIN 文件路径
-get_nvs_bin_path()
-
-# 获取 NVS 原始 BIN 文件路径
-get_nvs_raw_bin_path()
-```
-
-### 2.4 核心特性
-
-**使用官方工具解析 NVS 数据：**
-
-```python
-# 使用官方 nvs_tool.py 解析（minimal 格式）
-cmd = [ESP_IDF_PYTHON, NVS_TOOL_PATH, NVS_RAW_BIN, "-d", "minimal"]
-```
-
-输出格式：`namespace:key = value`，然后通过 `convert_to_csv()` 函数转换为标准 CSV 格式。
-
-函数 `generate_nvs_data()`，一次性完成 CSV 和 BIN 生成。
-
----
-
-## 3. as_service_register.py
-
-**设备注册模块：服务器注册**
-
-独立的设备注册服务脚本，处理与服务器的所有交互。
-
-### 3.1 功能说明
-
-脚本执行以下步骤：
-
-1. 重置配置文件 - 保留基础配置参数（server_url, c_sn, for_organization, u_url）
-2. 查询摄像头是否已注册 - 如果设备已存在，则提示并退出，避免重复注册
-3. 创建摄像头 - 在服务器上创建摄像头记录
-4. 创建 Unit - 创建设备单元并关联摄像头
-5. 创建账户 - 为设备创建账户，密码基于 SN 号自动生成
-6. 获取设备 Token - 使用账户信息获取设备认证令牌
-
-### 3.2 使用方法
-
-```bash
-# 独立运行
-python as_service_register.py
-
-# 或被 main.py 调用
-import as_service_register
-result = as_service_register.main()
-```
-
-### 3.3 代码结构
-
-```python
-# 常量定义
-ADMIN_TOKEN = "..."       # 管理员Token
-CAMERA = '/camera/c/'     # 摄像头API端点
-TIME_OUT = 300            # 请求超时时间
-
-# StreamingEndpoint 类 - 服务器API连接
-class StreamingEndpoint:
-    get_data_from_site()   # GET请求
-    post_data_to_site()    # POST请求
-
-# 配置管理函数
-reset_config()             # 重置配置文件
-
-# 密码生成函数
-generate_password_from_sn() # 基于SN生成固定密码（MS + MD5前6位 + !）
-
-# 主注册函数
-main()                     # 执行完整的注册流程
-```
-
-### 3.4 返回值格式
-
-```python
-{
-    'success': True/False,      # 注册是否成功
-    'error': '',                # 错误信息（如果失败）
-    'c_sn': '',                 # 设备序列号
-    'device_token': '',         # 设备认证令牌
-    'u_camera_id': 0,           # 摄像头ID
-    'u_unit_id': 0,             # Unit ID
-    'u_url': '',                # Unit URL
-    'server_url': ''            # 服务器地址
-}
-```
-
-### 3.5 错误处理
-
-- 任何步骤失败都会立即停止，不执行后续步骤
-- 如果摄像头已注册，提示修改 SN 号
-- 所有错误信息都记录在返回值的 error 字段中
-
----
-
-## 4. ms500.json
-
-**配置文件**
-
-设备注册所需的配置文件，包含服务器信息和设备信息。
-
-### 4.1 配置项说明
-
-```json
-{
-  "server_url": "https://your-server.com",
-  "c_sn": "MS500-H090-EP-2549-0001",
-  "for_organization": "your-org-id",
-  "u_url": "127.0.0.1"
-}
-```
-
-### 4.2 必填参数
-
-| 参数       | 说明                 | 示例                    |
-| ---------- | -------------------- | ----------------------- |
-| server_url | 服务器地址           | https://server.com      |
-| c_sn       | 设备序列号，必须唯一 | MS500-H090-EP-2549-0001 |
-| u_url      | 设备 URL 地址        | 127.0.0.1               |
-
-### 4.3 注册后新增字段
-
-注册成功后，配置文件会自动添加以下字段：
-
-```json
-{
-  "u_camera_id": 123,
-  "u_unit_id": 456,
-  "u_account_id": 789,
-  "password": "MS79b2a1!",
-  "device_token": "abc123..."
-}
-```
-
----
-
-## 5. 工具对比
-
-| 工具                       | 功能             | 使用场景         | 依赖                             |
-| -------------------------- | ---------------- | ---------------- | -------------------------------- |
-| **main.py**                | 完整生产流程控制 | 工厂批量生产     | as_nvs_tool, as_service_register |
-| **as_nvs_tool.py**         | NVS 数据管理     | 被 main.py 调用  | nvs_tool.py, esptool             |
-| **as_service_register.py** | 设备注册         | 独立注册或被调用 | requests, ms500.json             |
-
----
-
-## 6. 临时文件管理
-
-### 6.1 统一目录
-
-所有临时文件统一存放在 `temp/` 目录下，便于管理和清理：
+## 目录结构说明
 
 ```
-temp/
-├── ms500_nvs.bin           # 从设备读取的原始 NVS 数据
-├── factory_decoded.csv     # 解析后的已有 NVS 数据
-├── factory_data.csv        # 新的注册数据 CSV
-└── factory_nvs.bin         # 最终的 NVS BIN 文件
+MS500_Factory_P4/
+├── main.py                          # 一键完整流程主程序
+├── as_factory_firmware.py           # 固件烧录模块
+├── as_factory_info.py               # 设备注册和 NVS 烧录模块
+├── as_factory_model.py              # 模型转换和烧录模块
+├── as_ms500_config.json             # 配置文件（PORT、BIN_TYPE、MODEL_TYPE 等）
+├── CLAUDE.md                        # Claude Code 项目说明文档
+├── README.md                        # 本文件
+├── task.md                          # 任务清单
+│
+├── esp_components/                  # ESP-IDF 工具组件（自包含）
+│   ├── __init__.py                  # 组件包初始化
+│   ├── esp_tools.py                 # 统一工具路径配置和命令执行函数
+│   ├── python_env/                  # 本地 Python 3.12.6 虚拟环境
+│   │   ├── Scripts/
+│   │   │   ├── python.exe           # Python 解释器
+│   │   │   └── esptool.exe          # ESP32 烧录工具（v4.10.0）
+│   │   └── Lib/site-packages/       # Python 依赖包
+│   ├── nvs_tools/                   # NVS 分区工具
+│   │   ├── nvs_tool.py              # ESP-IDF 官方 NVS 解析器
+│   │   ├── nvs_parser.py
+│   │   ├── nvs_check.py
+│   │   └── nvs_logger.py
+│   └── fatfs_tools/                 # FAT 文件系统生成工具
+│       ├── wl_fatfsgen.py           # FAT 镜像生成器
+│       ├── fatfsgen.py
+│       └── fatfs_utils/             # FAT 工具库（11 个工具文件）
+│
+├── as_flash_firmware/               # 固件烧录模块
+│   ├── __init__.py                  # 模块初始化，导出分区信息函数
+│   ├── as_firmware_tool.py          # 固件烧录工具（解析分区表、烧录固件）
+│   └── bin_type/                    # 固件类型目录
+│       ├── ped_alarm/               # 行人检测固件
+│       │   ├── bootloader.bin
+│       │   ├── ms500_p4.bin
+│       │   ├── partition-table.bin
+│       │   ├── partitions.csv       # 分区表配置
+│       │   ├── ota_data_initial.bin
+│       │   └── storage.bin
+│       └── sdk_uvc_tw_plate/        # 台湾车牌识别固件
+│           └── ...
+│
+├── as_nvs_flash/                    # NVS 数据管理模块
+│   ├── __init__.py                  # 模块初始化，导出主要函数
+│   ├── as_nvs_read.py               # NVS 读取和解析
+│   ├── as_nvs_update.py             # NVS 生成和烧录
+│   └── temp/                        # 临时文件目录（自动创建）
+│       ├── ms500_nvs.bin            # 从设备读取的原始 NVS
+│       ├── factory_decoded.csv      # 解析的现有 NVS 数据
+│       ├── factory_data.csv         # 新的注册数据 CSV
+│       └── factory_nvs.bin          # 用于烧录的生成 NVS 二进制
+│
+├── as_model_flash/                  # AI 模型烧录模块
+│   ├── as_model_down.py             # 从 NVS 读取 device_id 并生成模型
+│   ├── as_model_flash.py            # 创建 FAT 镜像并烧录 storage_dl.bin
+│   └── as_model_flag.py             # 更新 NVS 标志（is_model_update=1）
+│
+├── as_model_conversion/             # AI 模型转换模块
+│   ├── __init__.py                  # 模块初始化，导出模型生成函数
+│   ├── as_model_auth.py             # 模型认证和生成
+│   ├── model_conversion.py          # 模型转换工具
+│   ├── model_config.json            # 模型配置文件
+│   ├── temp/                        # 临时文件目录
+│   │   └── {device_id}/
+│   │       └── spiffs_dl/           # 生成的模型文件
+│   └── type_model/                  # 模型类型目录
+│       ├── ped_alarm/               # 行人检测模型
+│       │   ├── packerOut.zip
+│       │   └── network_info.txt
+│       └── sdk_uvc_tw_plate/        # 台湾车牌识别模型
+│           └── ...
+│
+├── as_dm_register/                  # 设备管理注册模块
+│   ├── __init__.py                  # 模块初始化
+│   └── register.py                  # 服务器注册逻辑
+│
+└── temp/                            # 全局临时文件目录（自动创建）
+    ├── ms500_nvs.bin                # 从设备读取的 NVS
+    ├── factory_decoded.csv          # 解析的 NVS 数据
+    ├── factory_data.csv             # 新的注册数据
+    ├── factory_nvs.bin              # 生成的 NVS 二进制
+    └── storage_dl_content/          # AI 模型 FAT 文件系统暂存
+        └── dnn/                     # 模型文件（打包到 storage_dl.bin）
 ```
 
-### 6.2 自动管理
+### 目录功能说明
 
-- **自动创建** - main.py 运行时自动创建 temp/ 目录
-- **便于清理** - 可通过删除 temp/ 目录清理所有临时文件
-- **路径管理** - as_nvs_tool.py 提供路径访问接口
+#### 核心模块
+- **esp_components/**: ESP-IDF 工具链（自包含，无需外部 ESP-IDF 安装）
+- **as_flash_firmware/**: 固件烧录功能
+- **as_nvs_flash/**: NVS 数据读写和管理
+- **as_model_flash/**: AI 模型烧录功能
+- **as_model_conversion/**: AI 模型转换和加密
+- **as_dm_register/**: 设备服务器注册
 
----
+#### 数据目录
+- **temp/**: 临时文件存储（NVS、模型等）
+- **bin_type/**: 固件文件存储（按类型分类）
+- **type_model/**: AI 模型文件存储（按类型分类）
 
-## 7. 密码生成规则
+## ESP32-P4 Flash 内存映射
 
-设备密码基于 SN 号自动生成，确保每个设备有唯一且可复现的密码：
+| 分区            | 偏移     | 大小 | 用途                   |
+| --------------- | -------- | ---- | ---------------------- |
+| bootloader      | 0x2000   | -    | 引导加载程序           |
+| partition-table | 0x8000   | -    | 分区表                 |
+| nvs             | 0x9000   | 64KB | 非易失性存储           |
+| ota_data        | 0x19000  | -    | OTA 更新数据           |
+| firmware        | 0x20000  | -    | 主应用程序             |
+| storage         | 0x720000 | -    | 存储分区               |
+| storage_dl      | 0x8A0000 | 7MB  | AI 模型存储（FAT）     |
 
-- 格式：MS + MD5前6位 + !
-- 示例：SN = MS500-001 生成密码 = MS79b2a1!
-- 特点：
-  - 相同的 SN 总是生成相同的密码
-  - 包含大写字母、数字、特殊字符
-  - 8位长度，安全性适中
+## 串口配置
 
----
+### Windows
+- 查看串口：设备管理器 → 端口（COM 和 LPT）
+- 示例：COM4
 
-## 8. 注意事项
+### Linux/Mac
+- 查看串口：`ls /dev/ttyUSB*` 或 `ls /dev/ttyACM*`
+- 示例：/dev/ttyUSB0
 
-1. **SN 号必须唯一** - 如果 SN 已存在，注册会失败，需要修改 c_sn
-2. **ESP-IDF 环境** - 必须正确配置 ESP-IDF Python 环境路径
-3. **NVS 工具路径** - 确保 nvs_tool.py 路径正确
-4. **设备连接** - 设备需要处于下载模式（Bootloader）
-5. **NVS 分区配置** - 偏移地址和大小必须与分区表一致
-6. **网络要求** - 确保可以访问 server_url 指定的服务器
-7. **临时文件** - 生产流程会在 temp/ 目录生成临时文件
-8. **模块命名** - 注意 as\_ 前缀，表示这是应用级服务模块
+### 修改串口
+编辑 `as_ms500_config.json` 中的 `PORT` 参数。
 
----
+## 设备连接要求
 
-## 9. 常见问题
+### 下载模式（烧录模式）
 
-**问题1: 如何修改 ESP-IDF Python 路径？**
+ESP32 必须处于下载模式才能进行烧录操作：
 
-编辑 as_nvs_tool.py，修改常量：
+**自动模式**（推荐）：
+- 如果硬件支持 DTR/RTS，esptool 会自动处理
+- 无需手动操作
 
-```python
-ESP_IDF_PYTHON = r"C:\your-path\esp-idf\python_env\idf5.4_py3.12_env\Scripts\python.exe"
-```
+**手动模式**：
+1. 按住 **Boot** 按钮
+2. 短按 **Reset** 按钮
+3. 释放 **Boot** 按钮
+4. 通过串口监视器验证：`boot:0x107 (DOWNLOAD(USB/UART0/SPI))`
 
-**问题2: 如何修改 NVS 分区配置？**
+## 常见问题
 
-编辑 main.py 和 as_nvs_tool.py，根据分区表修改：
+### 1. 串口连接失败
+**错误信息**：`Error: Cannot connect to device`
 
-```python
-NVS_OFFSET = "0x9000"
-NVS_SIZE = "0x10000"  # 64KB
-```
+**解决方法**：
+- 检查 COM 端口号是否正确
+- 确认设备是否处于下载模式
+- 确保没有其他程序占用串口
+- 检查驱动程序是否安装
 
-**问题3: 设备连接失败怎么办？**
+### 2. NVS 解析错误
+**错误信息**：`Error: Cannot decode NVS data`
 
-检查：
+**可能原因**：
+- NVS 分区为空（新设备正常）
+- 分区数据损坏
+- 格式不兼容
 
-1. 设备是否正确连接到指定 COM 端口
-2. 设备是否处于下载模式（按住 Boot 按钮重启）
-3. 串口是否被其他程序占用
-4. 驱动是否正确安装
+**解决方法**：
+- 新设备：正常，继续注册流程
+- 已烧录设备：重新烧录固件
 
-**问题4: NVS 解析失败怎么办？**
+### 3. 服务器注册错误
+**错误信息**：`Camera SN already registered`
 
-可能原因：
+**解决方法**：
+- 在 `as_ms500_config.json` 中更改 `c_sn` 为唯一序列号
 
-1. NVS 分区数据损坏 - 重新烧录固件
-2. NVS 分区格式不兼容 - 检查固件版本
-3. 分区配置错误 - 检查偏移地址和大小
+### 4. 模型烧录错误
+**错误信息**：`g_camera_id not found`
 
-**问题5: 如何处理重复注册？**
+**解决方法**：
+- 必须先执行设备注册（as_factory_info.py）
+- 确保 NVS 中包含 `g_camera_id` 字段
 
-如果提示 "Camera SN is already registered"，有两个选择：
+## 技术架构说明
 
-1. 修改 ms500.json 中的 c_sn 为新的序列号
-2. 在服务器端删除旧的摄像头记录（如果确认需要重新注册）
+### 1. 参数管理集中化
+所有配置参数都在 `as_ms500_config.json` 中统一管理，支持灵活配置。
 
-**问题6: 临时文件存放在哪里？**
+### 2. 命令执行统一化
+所有 `subprocess.run` 操作都统一使用 `esp_tools.run_command()`，提供：
+- 自动命令打印
+- 统一错误处理
+- 灵活的参数配置
 
-所有临时文件统一存放在 `temp/` 目录下，包括：
+### 3. 模块化设计
+每个 Python 脚本都有特定职责：
+- `main.py`: 编排完整流程
+- `as_factory_*.py`: 独立功能模块
+- `as_*_flash/`: 数据读写模块
+- `esp_components/`: 工具库
 
-- temp/ms500_nvs.bin
-- temp/factory_decoded.csv
-- temp/factory_data.csv
-- temp/factory_nvs.bin
+### 4. 自包含工具链
+`esp_components/` 目录包含所有 ESP-IDF 依赖，无需外部 ESP-IDF 安装。
 
----
+## 开发说明
 
-## 10. 技术支持
+### 添加新的固件类型
 
-- 开发环境：Python 3.7+
-- 依赖库：requests、urllib3、esptool
-- 服务器 API：基于 Django REST Framework
-- 认证方式：Token Authentication
+1. 在 `as_flash_firmware/bin_type/` 下创建新目录
+2. 放入固件文件和 `partitions.csv`
+3. 在 `as_ms500_config.json` 中设置 `BIN_TYPE`
+
+### 添加新的模型类型
+
+1. 在 `as_model_conversion/type_model/` 下创建新目录
+2. 放入 `packerOut.zip` 和 `network_info.txt`
+3. 在 `as_ms500_config.json` 中设置 `MODEL_TYPE`
+
+## 许可证
+
+本项目为内部工厂生产工具，版权归公司所有。
+
+## 联系方式
+
+如有问题，请联系技术支持团队。

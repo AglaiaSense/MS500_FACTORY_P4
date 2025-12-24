@@ -14,7 +14,7 @@ import subprocess
 
 # 导入 ESP 组件工具
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from esp_components import get_esp_idf_python, get_nvs_tool_path, get_esptool
+from esp_components import get_esp_idf_python, get_nvs_tool_path, get_esptool, run_command
 
 # 导入分区工具
 from as_flash_firmware import get_nvs_info
@@ -145,8 +145,7 @@ def read_flash_and_mac(port, bin_type):
     print(f"  Size:   {nvs_size}")
 
     cmd = [ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, READ_BIN]
-    print(f"执行命令: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = run_command(cmd)
 
     # 检查是否成功
     if result.returncode != 0:
@@ -242,9 +241,7 @@ def check_nvs_data():
     # 使用官方 nvs_tool.py 解析（minimal 格式）
     print("\n  尝试解码 NVS 数据...")
     cmd = [ESP_IDF_PYTHON, NVS_TOOL_PATH, READ_BIN, "-d", "minimal"]
-    print(f"  执行命令: {' '.join(cmd)}")
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = run_command(cmd)
 
     if result.returncode != 0:
         print("  警告: 无法解码 NVS 数据")

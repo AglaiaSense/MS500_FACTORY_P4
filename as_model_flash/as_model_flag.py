@@ -10,7 +10,7 @@ import subprocess
 
 # 导入 ESP 组件工具
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from esp_components import get_esptool, get_baud_rate
+from esp_components import get_esptool, get_baud_rate, run_command
 
 # 导入分区工具
 from as_flash_firmware import get_nvs_info
@@ -113,11 +113,10 @@ def flash_nvs_bin(port, nvs_bin, bin_type):
 
         # NVS 文件较小，使用默认波特率更稳定
         cmd = [ESPTOOL, "--port", port, "write_flash", nvs_offset, nvs_bin]
-        print(f"执行命令: {' '.join(cmd)}")
         print("正在烧录 NVS...\n")
 
         # 不捕获输出，让 esptool 的进度信息实时显示
-        result = subprocess.run(cmd)
+        result = run_command(cmd, capture_output=False)
 
         if result.returncode != 0:
             print("\n错误: NVS bin 烧录失败")
@@ -152,8 +151,7 @@ def reset_esp32(port):
     try:
         # 使用 esptool 的 run 命令重启设备
         cmd = [ESPTOOL, "--port", port, "run"]
-        print(f"执行命令: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        result = run_command(cmd, timeout=10)
 
         if result.returncode != 0:
             print("\n警告: 重启命令返回非零退出码")

@@ -25,6 +25,8 @@ MS500 工厂生产主程序
 """
 
 import sys
+import os
+import json
 
 # 导入工厂生产模块
 import as_factory_info
@@ -32,18 +34,24 @@ import as_factory_firmware
 import as_factory_model
 
 
-#------------------  配置区  ------------------
+#------------------  读取配置文件  ------------------
 
-# 串口号
-PORT = "COM4"
+def load_config():
+    """从 as_ms500_config.json 读取配置参数"""
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'as_ms500_config.json')
 
-# 固件类型（对应 as_flash_firmware/bin_type/ 下的目录名）
-# 可选: "ms500_uvc", "sdk_uvc_tw_plate" "ped_alarm"
-BIN_TYPE = "ped_alarm"
+    if not os.path.exists(config_path):
+        raise RuntimeError(f"配置文件不存在: {config_path}")
 
-# 模型类型（对应 as_model_conversion/type_model/ 下的目录名）
-# 可选: "ped_alarm", "sdk_uvc_tw_plate" 等
-MODEL_TYPE = "ped_alarm"
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+
+    # 提取所需参数
+    port = config.get('PORT', 'COM4')
+    bin_type = config.get('BIN_TYPE', 'ped_alarm')
+    model_type = config.get('MODEL_TYPE', 'ped_alarm')
+
+    return port, bin_type, model_type
 
 
 #------------------  主流程  ------------------
@@ -51,46 +59,49 @@ MODEL_TYPE = "ped_alarm"
 def main():
     """主函数 - 完整的工厂生产流程"""
 
-    print("=" * 80)
-    print("  MS500 工厂生产主程序")
-    print("=" * 80)
-    print(f"串口: {PORT}")
-    print(f"固件类型: {BIN_TYPE}")
-    print(f"模型类型: {MODEL_TYPE}")
-    print("=" * 80)
-    print("\n【工厂生产流程】")
-    print("  1. 参数注册（NVS 烧录）")
-    print("  2. 固件烧录")
-    print("  3. 模型烧录")
-    print("=" * 80)
-
     try:
-        # 步骤1: 调用 as_factory_info.py 进行参数注册
-        print("\n" + "=" * 80)
-        print("【步骤 1/3】 参数注册（NVS 烧录）")
-        print("=" * 80)
+        # 从配置文件读取参数
+        PORT, BIN_TYPE, MODEL_TYPE = load_config()
 
-        as_factory_info.main()
-        print("\n✓ 步骤 1 完成: 参数注册成功")
-
-        # 步骤2: 调用 as_factory_firmware.py 进行固件烧录
-        print("\n" + "=" * 80)
-        print("【步骤 2/3】 固件烧录")
-        print("=" * 80)
-
-        result = as_factory_firmware.main(port=PORT, bin_type=BIN_TYPE)
-        if not result:
-            print("\n✗ 步骤 2 失败: 固件烧录失败")
-            return 1
-
-        print("\n✓ 步骤 2 完成: 固件烧录成功")
+        # print("=" * 80)
+        # print("  MS500 工厂生产主程序")
+        # print("=" * 80)
+        # print(f"串口: {PORT}")
+        # print(f"固件类型: {BIN_TYPE}")
+        # print(f"模型类型: {MODEL_TYPE}")
+        # print("=" * 80)
+        # print("\n【工厂生产流程】")
+        # print("  1. 参数注册（NVS 烧录）")
+        # print("  2. 固件烧录")
+        # print("  3. 模型烧录")
+        # print("=" * 80)
+        #
+        # # 步骤1: 调用 as_factory_info.py 进行参数注册
+        # print("\n" + "=" * 80)
+        # print("【步骤 1/3】 参数注册（NVS 烧录）")
+        # print("=" * 80)
+        #
+        # as_factory_info.main(port=PORT, bin_type=BIN_TYPE)
+        # print("\n✓ 步骤 1 完成: 参数注册成功")
+        #
+        # # 步骤2: 调用 as_factory_firmware.py 进行固件烧录
+        # print("\n" + "=" * 80)
+        # print("【步骤 2/3】 固件烧录")
+        # print("=" * 80)
+        #
+        # result = as_factory_firmware.main(port=PORT, bin_type=BIN_TYPE)
+        # if not result:
+        #     print("\n✗ 步骤 2 失败: 固件烧录失败")
+        #     return 1
+        #
+        # print("\n✓ 步骤 2 完成: 固件烧录成功")
 
         # 步骤3: 调用 as_factory_model.py 进行模型烧录
         print("\n" + "=" * 80)
         print("【步骤 3/3】 模型烧录")
         print("=" * 80)
 
-        result = as_factory_model.main(port=PORT, model_type=MODEL_TYPE)
+        result = as_factory_model.main(port=PORT, model_type=MODEL_TYPE, bin_type=BIN_TYPE)
         if result != 0:
             print("\n✗ 步骤 3 失败: 模型烧录失败")
             return 1
