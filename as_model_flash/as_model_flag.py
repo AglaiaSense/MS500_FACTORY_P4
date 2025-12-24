@@ -41,7 +41,7 @@ def update_nvs_with_model_flag():
     """
     print("\n" + "=" * 60)
     print("步骤 5: 使用 is_model_update 标志更新 NVS")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 读取现有的 NVS 数据
@@ -100,7 +100,7 @@ def flash_nvs_bin(port, nvs_bin, bin_type):
     """
     print("\n" + "=" * 60)
     print("步骤 6: 烧录新的 NVS bin 到 Flash")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 获取 NVS 分区信息
@@ -146,7 +146,7 @@ def reset_esp32(port):
     """
     print("\n" + "=" * 60)
     print("步骤 7: 重启 ESP32")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 使用 esptool 的 run 命令重启设备

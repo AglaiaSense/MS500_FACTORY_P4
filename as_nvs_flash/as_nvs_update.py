@@ -48,7 +48,7 @@ def generate_nvs_data(info, existing_nvs=None, bin_type="sdk_uvc_tw_plate"):
     """
     print("\n" + "=" * 60)
     print("步骤 4: 生成 NVS 数据（CSV 和 BIN）")
-    print("=" * 60)
+    print("-" * 60)
 
     # 获取 NVS 分区大小
     nvs_partition_info = get_nvs_info(bin_type)
@@ -185,7 +185,7 @@ def flash_nvs(port, bin_type="sdk_uvc_tw_plate"):
     """
     print("\n" + "=" * 60)
     print("步骤 5: 烧录 NVS 数据到设备")
-    print("=" * 60)
+    print("-" * 60)
 
     # 获取 NVS 分区偏移地址
     nvs_partition_info = get_nvs_info(bin_type)

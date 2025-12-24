@@ -44,9 +44,9 @@ def read_device_id_from_nvs(port, bin_type):
     返回:
         device_id 字符串，失败返回 None
     """
-    print("=" * 60)
+    print("-" * 60)
     print("步骤 1: 从 NVS 读取 device_id")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 获取 NVS 分区信息
@@ -122,7 +122,7 @@ def generate_model_files(device_id, model_type):
     """
     print("\n" + "=" * 60)
     print("步骤 2: 生成 AI 模型文件")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 调用 as_model_auth.py 的 generate_model_by_device_id 函数

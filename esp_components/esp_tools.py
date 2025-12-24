@@ -95,7 +95,7 @@ def test_port_connection(port):
     """
     print("\n" + "=" * 60)
     print("步骤2: 测试串口连接")
-    print("=" * 60)
+    print("-" * 60)
 
     cmd = [*ESPTOOL, "--port", port, "chip_id"]
     result = run_command(cmd)

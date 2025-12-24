@@ -76,15 +76,15 @@ def print_parameters(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
     Returns:
         bool: 参数是否有效
     """
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("Parameter Check")
-    print("="*70)
+    print("-" * 60)
     print(f"Server URL    : {server_url}")
     print(f"Camera SN     : {c_sn}")
     print(f"Unit SN       : {u_sn}")
     print(f"Global Camera ID : {g_camera_id if g_camera_id else 'Not provided'}")
     print(f"Unit URL      : {u_url if u_url else 'Not provided'}")
-    print("="*70)
+    print("-" * 60)
 
     # 检查必需参数
     if not server_url:
@@ -113,9 +113,9 @@ def check_camera_registered(api: StreamingEndpoint, c_sn: str):
     Returns:
         tuple: (is_registered: bool, camera_id: int, message: str)
     """
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("Step 1: Check if Camera is Already Registered")
-    print("="*70)
+    print("-" * 60)
 
     success, camera_id, message = query_camera(api, c_sn)
 
@@ -201,9 +201,9 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
         return create_error_result(message)
 
     # 3. 创建摄像头
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("Step 2: Create Camera")
-    print("="*70)
+    print("-" * 60)
 
     success, u_camera_id, message = create_camera(api, c_sn, g_camera_id, DEFAULT_TIMEOUT)
     if not success:
@@ -211,9 +211,9 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
         return create_error_result(message)
 
     # 4. 创建 Unit
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("Step 3: Create Unit")
-    print("="*70)
+    print("-" * 60)
 
     success, u_unit_id, message = create_unit(api, u_sn, u_camera_id, u_url, DEFAULT_TIMEOUT)
     if not success:
@@ -221,9 +221,9 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
         return create_error_result(message)
 
     # 5. 创建账户
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("Step 4: Create Account")
-    print("="*70)
+    print("-" * 60)
 
     success, u_account_id, password, message = create_account(api, u_sn, DEFAULT_TIMEOUT)
     if not success:
@@ -231,9 +231,9 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
         return create_error_result(message)
 
     # 6. 获取设备 token
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("Step 5: Get Device Token")
-    print("="*70)
+    print("-" * 60)
 
     success, device_token, message = get_device_token(api, u_sn, password, DEFAULT_TIMEOUT)
     if not success:
@@ -241,9 +241,9 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
         return create_error_result(message)
 
     # 7. 保存结果到响应配置文件
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("Saving Response Configuration")
-    print("="*70)
+    print("-" * 60)
 
     request_config = {
         'server_url': server_url,
@@ -268,9 +268,9 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
         return create_error_result("Failed to save response configuration")
 
     # 完成
-    print("\n" + "="*70)
+    print("\n" + "-"*70)
     print("MS500 Device Registration Completed!")
-    print("="*70)
+    print("-" * 60)
     print(f"Camera SN     : {c_sn}")
     print(f"Unit SN       : {u_sn}")
     print(f"Camera ID     : {u_camera_id}")
@@ -280,7 +280,7 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
     print(f"Device Token  : {device_token}")
     if g_camera_id:
         print(f"Global Camera ID : {g_camera_id}")
-    print("="*70)
+    print("-" * 60)
     print("Registration data saved to as_respond.json")
 
     # 返回统一格式的结果

@@ -44,9 +44,9 @@ def test_read_mac(port):
     """
     测试串口连接并读取 MAC 地址（仅用于测试）
     """
-    print("=" * 60)
+    print("-" * 60)
     print("测试: 读取设备 MAC 地址")
-    print("=" * 60)
+    print("-" * 60)
 
     cmd = [*ESPTOOL, "--port", port, "read_mac"]
     result = run_command(cmd)
@@ -114,7 +114,7 @@ def request_server(mac, existing_info=None):
     """
     print("\n" + "=" * 60)
     print("步骤3: 向服务器注册设备")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 读取配置文件 as_ms500_config.json
@@ -202,12 +202,12 @@ def main(port, bin_type):
     use_port = port
     use_bin_type = bin_type
 
-    print("=" * 60)
-    print("  MS500-EP 工厂生产程序")
-    print("=" * 60)
+
+    print("-" * 60)
+    print("参数注册 开始")
     print(f"串口: {use_port}")
     print(f"固件类型: {use_bin_type}")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 步骤1：读取 MAC 和 NVS 数据
@@ -235,7 +235,7 @@ def main(port, bin_type):
 
         # 完成
         print("\n" + "=" * 60)
-        print("  ✓ 生产流程完成")
+        print("  ✓ 参数注册 完成")
 
     except KeyboardInterrupt:
         print("\n\n操作被用户中断")

@@ -61,9 +61,9 @@ def load_flash_config(bin_dir):
     if not os.path.exists(partitions_csv):
         raise RuntimeError(f"未找到分区表文件: {partitions_csv}")
 
-    print("=" * 60)
+    print("-" * 60)
     print("步骤0: 读取分区表配置")
-    print("=" * 60)
+    print("-" * 60)
     print(f"固件目录: {bin_dir}")
     print(f"分区表文件: {partitions_csv}")
     print()
@@ -122,9 +122,9 @@ def check_bin_files(bin_dir):
     """
     检查 ms500_build 目录中的 bin 文件是否存在
     """
-    print("=" * 60)
+    print("-" * 60)
     print("步骤1: 检查固件文件")
-    print("=" * 60)
+    print("-" * 60)
 
 
     missing_files = []
@@ -164,7 +164,7 @@ def flash_firmware(port,bin_dir):
     """
     print("\n" + "=" * 60)
     print("步骤3: 烧录固件到 ESP32-P4")
-    print("=" * 60)
+    print("-" * 60)
 
     # 构建 esptool 烧录命令
     cmd = [
@@ -237,15 +237,15 @@ def flash_firmware_with_config(port, bin_type):
     返回:
         成功返回 True，失败返回 False
     """
-    print("=" * 60)
+    print("-" * 60)
     print("  MS500-P4 固件烧录工具")
-    print("=" * 60)
+    print("-" * 60)
     print(f"  芯片型号: {CHIP_TYPE}")
     print(f"  串口端口: {port}")
     print(f"  波特率: {BAUD_RATE}")
     print(f"  Flash 大小: {FLASH_SIZE}")
     print(f"  固件类型: {bin_type}")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 构建固件目录路径
@@ -270,11 +270,11 @@ def flash_firmware_with_config(port, bin_type):
         # 完成
         print("\n" + "=" * 60)
         print("  ✓ 固件烧录完成")
-        print("=" * 60)
+        print("-" * 60)
         print("\n提示:")
         print("  - 设备将自动重启")
         print("  - 可以使用串口监视器查看启动日志")
-        print("=" * 60)
+        print("-" * 60)
 
         return True
 

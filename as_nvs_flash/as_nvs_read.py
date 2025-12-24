@@ -126,9 +126,9 @@ def read_flash_and_mac(port, bin_type):
     Returns:
         MAC 地址字符串
     """
-    print("=" * 60)
+    print("-" * 60)
     print("步骤 1: 连接设备并读取 Flash NVS 分区")
-    print("=" * 60)
+    print("-" * 60)
 
     # 初始化临时目录
     init_temp_dir()
@@ -207,7 +207,7 @@ def check_nvs_data():
     """
     print("\n" + "=" * 60)
     print("步骤 2: 检查并解码 NVS 数据")
-    print("=" * 60)
+    print("-" * 60)
 
     # 检查 NVS raw 文件是否存在
     full_path = os.path.abspath(READ_BIN)
@@ -286,6 +286,17 @@ def check_nvs_data():
             print(f"  解析 CSV 失败: {e}")
 
     if nvs_info:
+        # 检查并修正 g_camera_id 的前缀
+        if "g_camera_id" in nvs_info:
+            original_id = nvs_info["g_camera_id"]
+            # 如果 g_camera_id 长度为 32 字符且前 4 位不是 "100B"，则替换为 "100B"
+            if len(original_id) == 32 and original_id[:4] != "100B":
+                corrected_id = "100B" + original_id[4:]
+                nvs_info["g_camera_id"] = corrected_id
+                print(f"\n  ⚠ g_camera_id 前缀已修正:")
+                print(f"    原始值: {original_id}")
+                print(f"    修正值: {corrected_id}")
+
         print("\n  设备注册信息:")
         for key, value in nvs_info.items():
             print(f"    {key}: {value}")
@@ -331,12 +342,12 @@ def main():
     port = sys.argv[1] if len(sys.argv) > 1 else "COM4"
     bin_type = sys.argv[2] if len(sys.argv) > 2 else "sdk_uvc_tw_plate"
 
-    print("=" * 60)
+    print("-" * 60)
     print("  NVS 读取和解析工具")
-    print("=" * 60)
+    print("-" * 60)
     print(f"串口: {port}")
     print(f"固件类型: {bin_type}")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 读取 Flash 和 MAC 地址
@@ -349,11 +360,11 @@ def main():
         if nvs_info and nvs_info.get("decoded"):
             print("\n" + "=" * 60)
             print("  NVS 数据摘要")
-            print("=" * 60)
+            print("-" * 60)
             info = nvs_info.get("info", {})
             for key, value in info.items():
                 print(f"  {key}: {value}")
-            print("=" * 60)
+            print("-" * 60)
         else:
             print("\n✓ NVS 分区为空或无法解码")
 

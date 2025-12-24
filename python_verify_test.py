@@ -35,9 +35,9 @@ from esp_components import (
 
 def main():
     """主函数 - 执行环境验证测试"""
-    print("=" * 80)
+    print("-" * 60)
     print("  Python 环境验证测试")
-    print("=" * 80)
+    print("-" * 60)
     print()
 
     try:
@@ -50,9 +50,9 @@ def main():
         print()
 
         # 执行环境验证
-        print("=" * 80)
+        print("-" * 60)
         print("  开始验证环境...")
-        print("=" * 80)
+        print("-" * 60)
         print()
 
         # 分步验证
@@ -72,16 +72,16 @@ def main():
         print()
 
         # 综合验证
-        print("=" * 80)
+        print("-" * 60)
         print("  综合验证")
-        print("=" * 80)
+        print("-" * 60)
         verify_all_tools()
         print()
 
         # 显示成功信息
-        print("=" * 80)
+        print("-" * 60)
         print("  验证结果")
-        print("=" * 80)
+        print("-" * 60)
         print()
         print("✓✓✓ 所有环境检查通过！")
         print()
@@ -95,44 +95,44 @@ def main():
         print("  - 运行 as_factory_model.py 单独部署 AI 模型")
         print("  - 运行 as_flash_firmware/as_firmware_tool.py 单独烧录固件")
         print()
-        print("=" * 80)
+        print("-" * 60)
 
         return 0
 
     except RuntimeError as e:
         # 环境验证失败
         print()
-        print("=" * 80)
+        print("-" * 60)
         print("  验证失败")
-        print("=" * 80)
+        print("-" * 60)
         print()
         print("✗✗✗ 环境配置有问题！")
         print()
         print("错误详情:")
-        print("-" * 80)
+        print("-" * 60)
         print(str(e))
-        print("-" * 80)
+        print("-" * 60)
         print()
         print("请按照上面的解决方法修复环境配置后重试。")
         print()
         print("更多帮助请查看: PYTHON_ENV_SETUP.md")
-        print("=" * 80)
+        print("-" * 60)
 
         return 1
 
     except Exception as e:
         # 其他未预期的错误
         print()
-        print("=" * 80)
+        print("-" * 60)
         print("  发生未预期的错误")
-        print("=" * 80)
+        print("-" * 60)
         print()
         print(f"错误信息: {e}")
         print()
         import traceback
         traceback.print_exc()
         print()
-        print("=" * 80)
+        print("-" * 60)
 
         return 1
 

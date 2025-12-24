@@ -124,9 +124,9 @@ def get_storage_dl_info(bin_type):
 
 if __name__ == "__main__":
     # 测试代码
-    print("=" * 60)
+    print("-" * 60)
     print("Partition Information Tool - Test")
-    print("=" * 60)
+    print("-" * 60)
 
     bin_types = ["sdk_uvc_tw_plate", "ped_alarm", "ms500_uvc"]
 

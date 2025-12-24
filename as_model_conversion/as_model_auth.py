@@ -45,7 +45,7 @@ def create_work_directories(device_id: str, base_path: Optional[str] = None) -> 
     """
     print("\n" + "=" * 60)
     print("  步骤 1: 创建工作目录")
-    print("=" * 60)
+    print("-" * 60)
 
     # 确定基础路径（当前文件在 as_model_conversion 目录下）
     if base_path is None:
@@ -89,7 +89,7 @@ def convert_model(device_id: str, model_type: str, output_dir: str, base_path: O
     """
     print("\n" + "=" * 60)
     print("  步骤 2: 模型转换")
-    print("=" * 60)
+    print("-" * 60)
 
     # 确定基础路径（当前文件在 as_model_conversion 目录下）
     if base_path is None:
@@ -135,7 +135,7 @@ def extract_zip_file(zip_file_path: str, device_work_dir: str) -> Optional[str]:
     """
     print("\n" + "=" * 60)
     print("  步骤 3: ZIP 解压缩")
-    print("=" * 60)
+    print("-" * 60)
 
     # 解压目录：temp/{device_id}/output
     extract_dir = os.path.join(device_work_dir, "output")
@@ -187,7 +187,7 @@ def copy_flash_files(extract_dir: str, model_type: str, spiffs_dl_dir: str, base
     """
     print("\n" + "=" * 60)
     print("  步骤 4: 复制烧录文件")
-    print("=" * 60)
+    print("-" * 60)
 
     # 确定基础路径（当前文件在 as_model_conversion 目录下）
     if base_path is None:
@@ -268,7 +268,7 @@ def assemble_spiffs_dl(spiffs_dl_dir: str) -> bool:
     """
     print("\n" + "=" * 60)
     print("  步骤 5: 组装 SPIFFS_DL 目录")
-    print("=" * 60)
+    print("-" * 60)
 
     # 检查必需文件
     required_files = []
@@ -328,7 +328,7 @@ def generate_model_by_device_id(
     """
     print("\n" + "=" * 80)
     print("  根据设备 ID 生成模型 - 5步流程")
-    print("=" * 80)
+    print("-" * 60)
     print(f"设备 ID: {device_id}")
     print(f"模型类型: {model_type}")
 
@@ -361,7 +361,7 @@ def generate_model_by_device_id(
         # 返回 spiffs_dl 目录路径
         print("\n" + "=" * 80)
         print("  ✓ 所有步骤已成功完成")
-        print("=" * 80)
+        print("-" * 60)
         print(f"✓ SPIFFS DL 目录: {spiffs_dl_dir}")
 
         return str(spiffs_dl_dir)

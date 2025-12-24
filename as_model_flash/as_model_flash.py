@@ -60,7 +60,7 @@ def create_storage_dl_bin(spiffs_dl_dir, bin_type):
     """
     print("\n" + "=" * 60)
     print("步骤 3: 创建 storage_dl.bin")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 获取 storage_dl 分区信息
@@ -165,7 +165,7 @@ def flash_storage_dl_bin(port, storage_dl_bin, bin_type):
     """
     print("\n" + "=" * 60)
     print("步骤 4: 烧录 storage_dl.bin 到 Flash")
-    print("=" * 60)
+    print("-" * 60)
 
     try:
         # 获取 storage_dl 分区信息

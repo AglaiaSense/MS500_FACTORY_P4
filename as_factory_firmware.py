@@ -42,12 +42,11 @@ def main(port, bin_type):
     use_port = port
     use_bin_type = bin_type
 
-    print("=" * 80)
-    print("  MS500 固件工厂烧录工具")
-    print("=" * 80)
+    print("-" * 60)
+    print("  固件工厂烧录 开始")
     print(f"串口: {use_port}")
     print(f"固件类型: {use_bin_type}")
-    print("=" * 80)
+    print("-" * 60)
 
     try:
         # 调用 as_firmware_tool.py 的 flash_firmware_with_config 函数
@@ -56,12 +55,12 @@ def main(port, bin_type):
         if success:
             print("\n" + "=" * 80)
             print("  ✓ 固件烧录完成")
-            print("=" * 80)
+            print("-" * 60)
             return True
         else:
             print("\n" + "=" * 80)
             print("  ✗ 固件烧录失败")
-            print("=" * 80)
+            print("-" * 60)
             return False
 
     except KeyboardInterrupt:
