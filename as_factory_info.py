@@ -48,7 +48,7 @@ def test_read_mac(port):
     print("测试: 读取设备 MAC 地址")
     print("=" * 60)
 
-    cmd = [ESPTOOL, "--port", port, "read_mac"]
+    cmd = [*ESPTOOL, "--port", port, "read_mac"]
     result = run_command(cmd)
 
     # 检查是否成功

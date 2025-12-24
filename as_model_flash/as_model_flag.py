@@ -112,7 +112,7 @@ def flash_nvs_bin(port, nvs_bin, bin_type):
         print(f"\nNVS partition offset (from {bin_type}): {nvs_offset}")
 
         # NVS 文件较小，使用默认波特率更稳定
-        cmd = [ESPTOOL, "--port", port, "write_flash", nvs_offset, nvs_bin]
+        cmd = [*ESPTOOL, "--port", port, "write_flash", nvs_offset, nvs_bin]
         print("正在烧录 NVS...\n")
 
         # 不捕获输出，让 esptool 的进度信息实时显示
@@ -150,7 +150,7 @@ def reset_esp32(port):
 
     try:
         # 使用 esptool 的 run 命令重启设备
-        cmd = [ESPTOOL, "--port", port, "run"]
+        cmd = [*ESPTOOL, "--port", port, "run"]
         result = run_command(cmd, timeout=10)
 
         if result.returncode != 0:

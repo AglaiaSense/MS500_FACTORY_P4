@@ -64,7 +64,7 @@ def read_device_id_from_nvs(port, bin_type):
         print("\n正在从设备读取 NVS 分区...")
         nvs_raw_bin = get_nvs_raw_bin_path()
 
-        cmd = [ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, nvs_raw_bin]
+        cmd = [*ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, nvs_raw_bin]
         result = run_command(cmd)
 
         if result.returncode != 0:

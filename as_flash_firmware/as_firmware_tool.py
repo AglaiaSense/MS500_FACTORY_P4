@@ -168,7 +168,7 @@ def flash_firmware(port,bin_dir):
 
     # 构建 esptool 烧录命令
     cmd = [
-        ESPTOOL,
+        *ESPTOOL,
         "-p", port,
         "-b", BAUD_RATE,
         "--before", "default_reset",

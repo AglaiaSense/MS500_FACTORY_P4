@@ -23,8 +23,9 @@ NVS_TOOL_PATH = str(ESP_COMPONENTS_DIR / "nvs_tools" / "nvs_tool.py")
 # FAT 文件系统镜像生成工具路径（使用本地工具）
 FATFS_GEN_TOOL = str(ESP_COMPONENTS_DIR / "fatfs_tools" / "wl_fatfsgen.py")
 
-# ESP32 烧录工具（使用.venv虚拟环境中的esptool）
-ESPTOOL = str(PROJECT_ROOT / ".venv" / "Scripts" / "esptool.exe")
+# ESP32 烧录工具（使用 Python 模块方式调用，避免 Windows WinError 2）
+# 注意：返回列表格式 [python.exe, -m, esptool]
+ESPTOOL = [str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"), "-m", "esptool"]
 
 # 使用 ESP-IDF 的 NVS 分区生成模块（仅用于生成 BIN）
 NVS_GEN_MODULE = "esp_idf_nvs_partition_gen"
@@ -52,7 +53,18 @@ def get_fatfs_gen_tool():
 
 
 def get_esptool():
-    """获取 esptool 命令"""
+    """
+    获取 esptool 命令（返回列表格式）
+
+    返回:
+        list: [python.exe, -m, esptool] 格式的命令列表
+
+    注意:
+        返回的是列表，使用时需要扩展：
+        cmd = get_esptool() + ["--port", "COM4", ...]
+        或
+        cmd = [*get_esptool(), "--port", "COM4", ...]
+    """
     return ESPTOOL
 
 
@@ -85,7 +97,7 @@ def test_port_connection(port):
     print("步骤2: 测试串口连接")
     print("=" * 60)
 
-    cmd = [ESPTOOL, "--port", port, "chip_id"]
+    cmd = [*ESPTOOL, "--port", port, "chip_id"]
     result = run_command(cmd)
 
     if result.returncode != 0:
@@ -185,4 +197,122 @@ def run_command_with_error_check(cmd, error_message="命令执行失败", print_
 
 
 # ========== 工具验证函数 ==========
+
+def verify_python_environment():
+    """
+    验证 Python 虚拟环境是否正确配置
+
+    检查项:
+        1. .venv 目录是否存在
+        2. python.exe 是否存在
+        3. esptool.exe 是否存在
+
+    Returns:
+        bool: 环境验证成功返回 True
+
+    Raises:
+        RuntimeError: 环境验证失败时抛出，包含详细错误信息
+    """
+    errors = []
+
+    # 检查 .venv 目录
+    venv_dir = PROJECT_ROOT / ".venv"
+    if not venv_dir.exists():
+        errors.append(f"虚拟环境目录不存在: {venv_dir}")
+        errors.append("\n解决方法:")
+        errors.append("  1. 在项目根目录创建虚拟环境:")
+        errors.append("     python -m venv .venv")
+        errors.append("  2. 安装项目依赖:")
+        errors.append("     .venv\\Scripts\\activate")
+        errors.append("     pip install -r requirements.txt")
+        errors.append("\n详细说明请查看: PYTHON_ENV_SETUP.md")
+        raise RuntimeError("\n".join(errors))
+
+    # 检查 Python 解释器
+    if not os.path.exists(ESP_IDF_PYTHON):
+        errors.append(f"Python 解释器不存在: {ESP_IDF_PYTHON}")
+        errors.append("\n解决方法:")
+        errors.append("  虚拟环境可能损坏，请重新创建:")
+        errors.append("  1. 删除 .venv 目录")
+        errors.append("  2. python -m venv .venv")
+        errors.append("  3. .venv\\Scripts\\activate")
+        errors.append("  4. pip install -r requirements.txt")
+        raise RuntimeError("\n".join(errors))
+
+    # 检查 esptool（验证 Python 模块是否已安装）
+    # ESPTOOL 现在是列表格式 [python.exe, -m, esptool]
+    import subprocess
+    try:
+        result = subprocess.run(
+            [*ESPTOOL, "version"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            raise RuntimeError("esptool 模块未正确安装")
+    except (FileNotFoundError, subprocess.TimeoutExpired, RuntimeError):
+        errors.append(f"esptool 工具未安装或无法运行")
+        errors.append("\n解决方法:")
+        errors.append("  1. 激活虚拟环境: .venv\\Scripts\\activate")
+        errors.append("  2. 安装依赖: pip install -r requirements.txt")
+        errors.append("  3. 验证安装: python -m esptool version")
+        raise RuntimeError("\n".join(errors))
+
+    return True
+
+
+def verify_nvs_tools():
+    """
+    验证 NVS 工具是否存在
+
+    Returns:
+        bool: 工具验证成功返回 True
+
+    Raises:
+        RuntimeError: 工具验证失败时抛出
+    """
+    if not os.path.exists(NVS_TOOL_PATH):
+        raise RuntimeError(
+            f"NVS 工具不存在: {NVS_TOOL_PATH}\n"
+            f"请检查 esp_components/nvs_tools/ 目录是否完整"
+        )
+    return True
+
+
+def verify_fatfs_tools():
+    """
+    验证 FAT 文件系统工具是否存在
+
+    Returns:
+        bool: 工具验证成功返回 True
+
+    Raises:
+        RuntimeError: 工具验证失败时抛出
+    """
+    if not os.path.exists(FATFS_GEN_TOOL):
+        raise RuntimeError(
+            f"FAT 生成工具不存在: {FATFS_GEN_TOOL}\n"
+            f"请检查 esp_components/fatfs_tools/ 目录是否完整"
+        )
+    return True
+
+
+def verify_all_tools():
+    """
+    验证所有必需工具
+
+    在程序开始时调用此函数，确保所有工具都已正确配置
+
+    Returns:
+        bool: 所有工具验证成功返回 True
+
+    Raises:
+        RuntimeError: 任何工具验证失败时抛出
+    """
+    verify_python_environment()
+    verify_nvs_tools()
+    verify_fatfs_tools()
+    print("✓ 环境验证成功: 所有工具已正确配置")
+    return True
 

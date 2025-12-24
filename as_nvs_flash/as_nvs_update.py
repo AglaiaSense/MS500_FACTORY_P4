@@ -195,7 +195,7 @@ def flash_nvs(port, bin_type="sdk_uvc_tw_plate"):
     nvs_offset = nvs_partition_info["offset"]
     print(f"NVS partition offset (from {bin_type}): {nvs_offset}")
 
-    cmd = [ESPTOOL, "--port", port, "write_flash", nvs_offset, UPDATE_BIN]
+    cmd = [*ESPTOOL, "--port", port, "write_flash", nvs_offset, UPDATE_BIN]
     result = run_command(cmd)
 
     if result.returncode != 0:

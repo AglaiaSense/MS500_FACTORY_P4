@@ -22,6 +22,10 @@ from .esp_tools import (
     test_port_connection,
     run_command,
     run_command_with_error_check,
+    verify_python_environment,
+    verify_nvs_tools,
+    verify_fatfs_tools,
+    verify_all_tools,
 )
 
 __all__ = [
@@ -34,4 +38,8 @@ __all__ = [
     "test_port_connection",
     "run_command",
     "run_command_with_error_check",
+    "verify_python_environment",
+    "verify_nvs_tools",
+    "verify_fatfs_tools",
+    "verify_all_tools",
 ]

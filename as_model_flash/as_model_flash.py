@@ -176,7 +176,7 @@ def flash_storage_dl_bin(port, storage_dl_bin, bin_type):
         storage_dl_offset = storage_dl_info["offset"]
         print(f"\nstorage_dl partition offset (from {bin_type}): {storage_dl_offset}")
 
-        cmd = [ESPTOOL, "--port", port, "--baud", BAUD_RATE, "write_flash", storage_dl_offset, storage_dl_bin]
+        cmd = [*ESPTOOL, "--port", port, "--baud", BAUD_RATE, "write_flash", storage_dl_offset, storage_dl_bin]
         print(f"使用波特率: {BAUD_RATE}")
         print("正在烧录... (可能需要一段时间)\n")
 

@@ -144,7 +144,7 @@ def read_flash_and_mac(port, bin_type):
     print(f"  Offset: {nvs_offset}")
     print(f"  Size:   {nvs_size}")
 
-    cmd = [ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, READ_BIN]
+    cmd = [*ESPTOOL, "--port", port, "read_flash", nvs_offset, nvs_size, READ_BIN]
     result = run_command(cmd)
 
     # 检查是否成功
