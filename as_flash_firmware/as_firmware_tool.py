@@ -196,27 +196,16 @@ def flash_firmware(port,bin_dir):
         print(f"  {address} <- {filename}")
     print()
 
-    # 执行烧录
+    # 执行烧录（使用实时输出模式）
     print("开始烧录...")
     print("-" * 60)
 
-    result = run_command(cmd, print_cmd=False)
-
-    # 打印烧录过程输出
-    if result.stdout:
-        print(result.stdout)
+    result = run_command(cmd, print_cmd=False, realtime_output=True)
 
     if result.returncode != 0:
         print("\n" + "!" * 60)
         print("错误: 固件烧录失败")
         print("!" * 60)
-
-        if result.stderr.strip():
-            print("\n详细错误信息:")
-            print("-" * 60)
-            print(result.stderr)
-            print("-" * 60)
-
         raise RuntimeError("固件烧录失败")
 
     print("-" * 60)

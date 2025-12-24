@@ -136,26 +136,59 @@ def test_port_connection(port):
 
 # ========== 命令执行函数 ==========
 
-def run_command(cmd, capture_output=True, text=True, print_cmd=True, timeout=None, **kwargs):
+def run_command(cmd, capture_output=True, text=True, print_cmd=True, timeout=None, realtime_output=False, **kwargs):
     """
     统一的命令执行函数
 
     参数:
         cmd: 命令列表 (例如: [ESPTOOL, "--port", "COM4", "read_mac"])
-        capture_output: 是否捕获输出 (默认 True)
+        capture_output: 是否捕获输出 (默认 True，当 realtime_output=True 时自动设置为 False)
         text: 是否以文本模式输出 (默认 True)
         print_cmd: 是否打印命令 (默认 True)
         timeout: 超时时间（秒）
+        realtime_output: 是否实时输出命令执行过程 (默认 False)
         **kwargs: 其他传递给 subprocess.run 的参数
 
     返回:
         subprocess.CompletedProcess 对象
+        注意: 当 realtime_output=True 时，stdout 和 stderr 将为空字符串
     """
     import subprocess
+    import sys
 
     if print_cmd:
         print(f"执行命令: {' '.join(cmd)}")
 
+    # 实时输出模式
+    if realtime_output:
+        # 实时模式下，stdout/stderr 重定向到控制台，不捕获输出
+        process = subprocess.Popen(
+            cmd,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            text=text,
+            **kwargs
+        )
+
+        try:
+            returncode = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+            raise
+
+        # 返回与 subprocess.run 兼容的结果对象
+        # 注意: 实时模式下 stdout 和 stderr 为空
+        class CompletedProcess:
+            def __init__(self, args, returncode):
+                self.args = args
+                self.returncode = returncode
+                self.stdout = ""
+                self.stderr = ""
+
+        return CompletedProcess(cmd, returncode)
+
+    # 传统捕获模式
     return subprocess.run(
         cmd,
         capture_output=capture_output,

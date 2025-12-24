@@ -181,7 +181,7 @@ def flash_storage_dl_bin(port, storage_dl_bin, bin_type):
         print("正在烧录... (可能需要一段时间)\n")
 
         # 不捕获输出，让 esptool 的进度信息实时显示
-        result = run_command(cmd, capture_output=False)
+        result = run_command(cmd, print_cmd=False, realtime_output=True)
 
         if result.returncode != 0:
             print("\n错误: 烧录 storage_dl.bin 失败")

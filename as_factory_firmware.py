@@ -77,7 +77,8 @@ if __name__ == "__main__":
 
     # 默认参数
     PORT = "COM4"               # 串口号
-    BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+    # BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+    BIN_TYPE = "ped_alarm"  # 固件类型
 
     # 执行主函数
     sys.exit(main(PORT, BIN_TYPE))

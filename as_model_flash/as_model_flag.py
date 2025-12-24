@@ -116,7 +116,7 @@ def flash_nvs_bin(port, nvs_bin, bin_type):
         print("正在烧录 NVS...\n")
 
         # 不捕获输出，让 esptool 的进度信息实时显示
-        result = run_command(cmd, capture_output=False)
+        result = run_command(cmd, print_cmd=False, realtime_output=True)
 
         if result.returncode != 0:
             print("\n错误: NVS bin 烧录失败")
@@ -125,48 +125,6 @@ def flash_nvs_bin(port, nvs_bin, bin_type):
         print("\n✓ NVS bin 烧录成功!")
         return True
 
-    except Exception as e:
-        print(f"\n错误: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-
-#------------------  步骤7: 重启 ESP32  ------------------
-
-def reset_esp32(port):
-    """
-    重启 ESP32 设备
-
-    Args:
-        port: 串口号
-
-    Returns:
-        重启是否成功
-    """
-    print("\n" + "=" * 60)
-    print("步骤 7: 重启 ESP32")
-    print("-" * 60)
-
-    try:
-        # 使用 esptool 的 run 命令重启设备
-        cmd = [*ESPTOOL, "--port", port, "run"]
-        result = run_command(cmd, timeout=10)
-
-        if result.returncode != 0:
-            print("\n警告: 重启命令返回非零退出码")
-            print(f"标准输出: {result.stdout}")
-            print(f"标准错误: {result.stderr}")
-            # 即使返回错误，设备可能已经重启
-            print("设备可能已经重启")
-
-        print("✓ ESP32 重启命令已发送")
-        return True
-
-    except subprocess.TimeoutExpired:
-        print("重启命令超时（预期行为）")
-        print("✓ ESP32 重启命令已发送")
-        return True
     except Exception as e:
         print(f"\n错误: {e}")
         import traceback
@@ -200,13 +158,7 @@ def main(port, bin_type, reset_device=True):
             print("\n✗ 烧录新的 NVS bin 失败")
             return False
 
-        # # 步骤7: 重启 ESP32（可选）
-        # if reset_device:
-        #     if not reset_esp32(port):
-        #         print("\n✗ 重启 ESP32 失败")
-        #         return False
-        #
-        # print("\n✓ 模型标志更新成功完成")
+
         return True
 
     except KeyboardInterrupt:
