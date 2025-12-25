@@ -28,7 +28,7 @@ import sys
 # 导入 as_dm_api 模块
 from .as_dm_api import (
     StreamingEndpoint,
-    ADMIN_TOKEN,
+    get_admin_token_for_server,
     DEFAULT_TIMEOUT,
     query_camera,
     create_camera,
@@ -192,8 +192,15 @@ def register_device(server_url, c_sn, u_sn, g_camera_id=None, u_url=''):
     if not print_parameters(server_url, c_sn, u_sn, g_camera_id, u_url):
         return create_error_result("Parameter validation failed")
 
-    # 使用固定的管理员token创建API连接
-    api = StreamingEndpoint(server_url, ADMIN_TOKEN)
+    # 根据 server_url 自动获取对应的管理员 token
+    try:
+        admin_token = get_admin_token_for_server(server_url)
+    except ValueError as e:
+        print(f"ERROR: {e}")
+        return create_error_result(str(e))
+
+    # 使用动态获取的管理员 token 创建 API 连接
+    api = StreamingEndpoint(server_url, admin_token)
 
     # 2. 查询摄像头是否已注册
     is_registered, camera_id, message = check_camera_registered(api, c_sn)

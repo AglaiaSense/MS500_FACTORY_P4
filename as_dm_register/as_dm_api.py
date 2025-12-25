@@ -21,9 +21,13 @@ API_UNIT = '/camera/u/'
 API_ACCOUNT = '/account/a/'
 API_TOKEN_AUTH = '/api-token-auth/'
 
-# ------------------ 固定管理员 Token ------------------
+# ------------------ 服务器 Token 映射表 ------------------
 
-ADMIN_TOKEN = "9b47d0133201679526cfc29825beff5f275574fa"
+SERVER_TOKENS = {
+    "http://192.168.0.6:8000": "9b47d0133201679526cfc29825beff5f275574fa",
+    "https://dm-be.leopardaws.com": "60e5c2a244f629d33290d23d75a63ba8e7f55555",
+    "https://gs-be.leopardaws.com": "24db61d56ddaa9575ad6e4f906c02e94a3aecd68"
+}
 
 # ------------------ 默认超时时间 ------------------
 
@@ -95,6 +99,33 @@ class StreamingEndpoint:
                 return False, f"Failed to post data {req.status_code}: {req.reason}. Detail: {error_detail}"
             except:
                 return False, f"Failed to post data {req.status_code}: {req.reason}. Response: {req.text}"
+
+
+# ------------------ Token 获取函数 ------------------
+
+def get_admin_token_for_server(server_url: str) -> str:
+    """根据服务器地址获取对应的管理员 token
+
+    Args:
+        server_url: 服务器地址
+
+    Returns:
+        str: 对应的管理员 token
+
+    Raises:
+        ValueError: 如果找不到对应的 token
+    """
+    token = SERVER_TOKENS.get(server_url)
+
+    if not token:
+        available_servers = "\n".join([f"  - {server}" for server in SERVER_TOKENS.keys()])
+        raise ValueError(
+            f"找不到服务器 '{server_url}' 对应的 token\n"
+            f"可用的服务器列表：\n{available_servers}"
+        )
+
+    print(f"已为服务器 {server_url} 获取到对应的 token")
+    return token
 
 
 # ------------------ 密码生成函数 ------------------

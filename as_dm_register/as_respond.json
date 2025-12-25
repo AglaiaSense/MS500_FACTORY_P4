@@ -1,16 +1,16 @@
 {
     "request": {
-        "server_url": "http://192.168.0.6:8000",
-        "c_sn": "CA500-MIPI-zlxc-0059",
-        "u_sn": "MS500-H120-EP-zlcu-0059",
+        "server_url": "https://dm-be.leopardaws.com",
+        "c_sn": "CA500-MIPI-zlxc-0001",
+        "u_sn": "MS500-H120-EP-zlxu-0001",
         "u_url": "127.0.0.1"
     },
     "response": {
-        "u_camera_id": 2622,
-        "u_unit_id": 1776,
-        "u_account_id": 167,
-        "password": "MS9a939c!",
-        "device_token": "c281dddf4df0d7bf10df1a5df90470777271364b",
+        "u_camera_id": 184,
+        "u_unit_id": 118,
+        "u_account_id": 56,
+        "password": "MS6505ca!",
+        "device_token": "071e075516ad5db9e5de78c768b33fa83a75a970",
         "c_sensor": "100B50501A2101018164011000000000"
     }
 }

@@ -1,7 +1,12 @@
-- [✓] **实现 flash_firmware 函数实时输出** (2025-12-24)
-- [✓] **新增 as_ms500_config.py 统一配置管理模块** (2025-12-25)
-- [✓] **创建 OPERATION_MANUAL.md 操作手册** (2025-12-25)
-- [✓] **OPERATION_MANUAL.md 添加 GitHub 下载地址** (2025-12-25)
-- [✓] **更新 docs 目录结构到文档** (2025-12-25)
-- [✓] **创建 as_ms500_config.md 配置说明文档** (2025-12-25)
-- [✓] **简化 as_ms500_config.md 为列表形式** (2025-12-25)
+
+
+需求；每个服务器对应的token不一样，需要再代码中动态修改。我希望在register_device中修改，变成无感的，server_url是会传到register_device中
+
+| 局域网     | http://192.168.0.6:8000      |9b47d0133201679526cfc29825beff5f275574fa
+| ---------- | ---------------------------- |
+| 测试服务器 | https://dm-be.leopardaws.com |60e5c2a244f629d33290d23d75a63ba8e7f55555
+| 生产服务器 | https://gs-be.leopardaws.com |24db61d56ddaa9575ad6e4f906c02e94a3aecd68
+
+# ADMIN_TOKEN = "9b47d0133201679526cfc29825beff5f275574fa"
+ 
+
