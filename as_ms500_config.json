@@ -1,8 +1,0 @@
-{
-  "server_url": "https://dm-be.leopardaws.com",
-  "c_sn": "CA500-MIPI-zlxc-0001",
-  "u_sn": "MS500-H120-EP-zlxu-0001",
-  "PORT": "COM4",
-  "BIN_TYPE": "ped_alarm",
-  "MODEL_TYPE": "ped_alarm"
-}
