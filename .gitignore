@@ -210,3 +210,5 @@ as_model_conversion/person_alerm/output/
 as_model_conversion/person_alerm/temp/
 temp/
 .claude/
+as_dm_register/as_respond.json
+as_ms500_config.json
