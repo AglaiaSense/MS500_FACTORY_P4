@@ -15,6 +15,9 @@ from as_nvs_flash import (
     init_temp_dir,
 )
 
+# 导入配置模块
+import as_ms500_config
+
 # ========== 配置区 ==========
 # 使用 esp_components 提供的 esptool 路径
 ESPTOOL = get_esptool()
@@ -117,31 +120,13 @@ def request_server(mac, existing_info=None):
     print("-" * 60)
 
     try:
-        # 读取配置文件 as_ms500_config.json
-        import json
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'as_ms500_config.json')
+        # 从配置模块读取参数
+        server_url = as_ms500_config.get_server_url()
+        c_sn = as_ms500_config.get_c_sn()
+        u_sn = as_ms500_config.get_u_sn()
+        u_url = as_ms500_config.get_u_url()
 
-        if not os.path.exists(config_path):
-            raise RuntimeError(f"配置文件不存在: {config_path}")
-
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-
-        # 从配置文件中提取参数
-        server_url = config.get('server_url', '').strip()
-        c_sn = config.get('c_sn', '').strip()
-        u_sn = config.get('u_sn', '').strip()
-        u_url = config.get('u_url', '127.0.0.1')  # 默认值
-
-        # 检查必需参数
-        if not server_url:
-            raise RuntimeError("配置文件中缺少 server_url")
-        if not c_sn:
-            raise RuntimeError("配置文件中缺少 c_sn")
-        if not u_sn:
-            raise RuntimeError("配置文件中缺少 u_sn")
-
-        print(f"从配置文件读取到参数:")
+        print(f"Reading parameters from configuration:")
         print(f"  server_url: {server_url}")
         print(f"  c_sn: {c_sn}")
         print(f"  u_sn: {u_sn}")
@@ -247,9 +232,9 @@ def main(port, bin_type):
 
 if __name__ == "__main__":
 
-    # 默认参数
-    PORT = "COM4"               # 串口号
-    BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+    # 从配置文件读取参数
+    PORT = as_ms500_config.get_port()
+    BIN_TYPE = as_ms500_config.get_bin_type()
 
     # 执行主函数
     sys.exit(main(PORT, BIN_TYPE))

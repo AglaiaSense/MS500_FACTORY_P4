@@ -30,6 +30,9 @@ from as_model_flash import as_model_down
 from as_model_flash import as_model_flash
 from as_model_flash import as_model_flag
 
+# 导入配置模块
+import as_ms500_config
+
 
 #------------------  主流程  ------------------
 
@@ -116,10 +119,10 @@ def main(port, model_type, bin_type):
 
 
 if __name__ == "__main__":
-    # 默认参数
-    PORT = "COM4"               # 串口号
-    MODEL_TYPE = "sdk_uvc_tw_plate"    # 模型类型
-    BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
+    # 从配置文件读取参数
+    PORT = as_ms500_config.get_port()
+    MODEL_TYPE = as_ms500_config.get_model_type()
+    BIN_TYPE = as_ms500_config.get_bin_type()
 
     # 执行主函数
     sys.exit(main(PORT, MODEL_TYPE, BIN_TYPE))

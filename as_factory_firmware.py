@@ -25,6 +25,9 @@ import sys
 # 导入固件烧录模块
 from as_flash_firmware.as_firmware_tool import flash_firmware_with_config
 
+# 导入配置模块
+import as_ms500_config
+
 
 #------------------  主函数  ------------------
 
@@ -75,10 +78,9 @@ def main(port, bin_type):
 
 if __name__ == "__main__":
 
-    # 默认参数
-    PORT = "COM4"               # 串口号
-    # BIN_TYPE = "sdk_uvc_tw_plate"  # 固件类型
-    BIN_TYPE = "ped_alarm"  # 固件类型
+    # 从配置文件读取参数
+    PORT = as_ms500_config.get_port()
+    BIN_TYPE = as_ms500_config.get_bin_type()
 
     # 执行主函数
     sys.exit(main(PORT, BIN_TYPE))

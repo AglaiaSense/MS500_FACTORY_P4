@@ -26,12 +26,14 @@ MS500 工厂生产主程序
 
 import sys
 import os
-import json
 
 # 导入工厂生产模块
 import as_factory_info
 import as_factory_firmware
 import as_factory_model
+
+# 导入配置模块
+import as_ms500_config
 
 
 #------------------  代码控制开关（类似 C 的 #if 0）  ------------------
@@ -42,40 +44,22 @@ ENABLE_STEP2_FIRMWARE = True   # 步骤2: 固件烧录
 ENABLE_STEP3_MODEL = True      # 步骤3: 模型烧录
 
 
-#------------------  读取配置文件  ------------------
-
-def load_config():
-    """从 as_ms500_config.json 读取配置参数"""
-    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'as_ms500_config.json')
-
-    if not os.path.exists(config_path):
-        raise RuntimeError(f"配置文件不存在: {config_path}")
-
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = json.load(f)
-
-    # 提取所需参数
-    port = config.get('PORT', 'COM4')
-    bin_type = config.get('BIN_TYPE', 'ped_alarm')
-    model_type = config.get('MODEL_TYPE', 'ped_alarm')
-
-    return port, bin_type, model_type
-
-
 #------------------  主流程  ------------------
 
 def main():
     """主函数 - 完整的工厂生产流程"""
 
     try:
-        # 从配置文件读取参数
-        PORT, BIN_TYPE, MODEL_TYPE = load_config()
+        # 从配置模块读取参数
+        PORT = as_ms500_config.get_port()
+        BIN_TYPE = as_ms500_config.get_bin_type()
+        MODEL_TYPE = as_ms500_config.get_model_type()
 
-        print("  MS500 工厂生产主程序")
-        print(f"串口: {PORT}")
-        print(f"固件类型: {BIN_TYPE}")
-        print(f"模型类型: {MODEL_TYPE}")
-        print(f"\n启用的步骤: ", end="")
+        print("  MS500 Factory Production Program")
+        print(f"Port: {PORT}")
+        print(f"Firmware Type: {BIN_TYPE}")
+        print(f"Model Type: {MODEL_TYPE}")
+        print(f"\nEnabled Steps: ", end="")
 
         enabled_steps = []
         if ENABLE_STEP1_REGISTER:

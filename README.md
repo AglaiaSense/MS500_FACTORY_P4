@@ -218,9 +218,14 @@ MS500_Factory_P4/
 ├── as_factory_info.py               # 设备注册和 NVS 烧录模块
 ├── as_factory_model.py              # 模型转换和烧录模块
 ├── as_ms500_config.json             # 配置文件（PORT、BIN_TYPE、MODEL_TYPE 等）
+├── as_ms500_config.py               # 配置读取模块
 ├── CLAUDE.md                        # Claude Code 项目说明文档
 ├── README.md                        # 本文件
-├── task.md                          # 任务清单
+│
+├── docs/                            # 文档目录
+│   ├── task.md                      # 任务清单
+│   ├── OPERATION_MANUAL.md          # 操作手册
+│   └── PYTHON_ENV_SETUP.md          # Python 虚拟环境配置指南
 │
 ├── esp_components/                  # ESP-IDF 工具组件（自包含）
 │   ├── __init__.py                  # 组件包初始化

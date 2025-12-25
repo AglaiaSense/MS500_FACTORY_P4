@@ -131,14 +131,16 @@ pip list
 # 2. 运行完整工厂生产流程（注册 + 烧录）
 python main.py
 
-# 3. 单独烧录固件
-python as_flash_firmware/as_firmware_tool.py
+# 3. 设备注册
+python as_factory_info.py
 
-# 4. 单独部署 AI 模型
+# 4. 单独烧录固件
+python as_factory_firmare.py
+
+# 5. 单独部署 AI 模型
 python as_factory_model.py
 
-# 5. 设备注册（不烧录）
-python as_service_register.py
+
 ```
 
 ---
