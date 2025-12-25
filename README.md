@@ -19,6 +19,26 @@ MS500 ESP32-P4 摄像头设备的综合性工厂生产工具，用于设备注�
 
 ## 快速开始
 
+### 0. 配置文件准备
+
+**首次使用时，需要从模板文件创建配置文件：**
+
+```bash
+# Windows CMD
+copy as_ms500_config.json.template as_ms500_config.json
+
+# Windows PowerShell
+Copy-Item as_ms500_config.json.template as_ms500_config.json
+
+# Linux/Mac
+cp as_ms500_config.json.template as_ms500_config.json
+```
+
+**说明：**
+- `as_ms500_config.json.template` 是配置模板文件，包含所有必需的配置参数示例
+- `as_ms500_config.json` 是实际使用的配置文件，**不会提交到 Git 仓库**（已在 .gitignore 中配置）
+- 这样设计可以避免敏感信息（如服务器地址、序列号等）被误提交到代码库
+
 ### 1. 配置参数
 
 编辑 `as_ms500_config.json` 文件，设置必要的参数：

@@ -489,14 +489,46 @@ Error: Firmware file not found: as_flash_firmware/bin_type/ped_alarm/bootloader.
 
 所有配置参数集中在 `as_ms500_config.json` 文件中管理。
 
-### 3.1 配置文件位置
+### 3.1 配置文件准备（首次使用必读）
+
+**首次使用本系统时，需要从模板文件创建配置文件：**
+
+#### Windows CMD:
+```cmd
+copy as_ms500_config.json.template as_ms500_config.json
+```
+
+#### Windows PowerShell:
+```powershell
+Copy-Item as_ms500_config.json.template as_ms500_config.json
+```
+
+#### Linux/Mac:
+```bash
+cp as_ms500_config.json.template as_ms500_config.json
+```
+
+**文件说明：**
+
+| 文件名 | 用途 | Git 管理 |
+|--------|------|----------|
+| `as_ms500_config.json.template` | 配置模板文件，包含配置示例 | ✅ 提交到 Git |
+| `as_ms500_config.json` | 实际使用的配置文件，包含真实参数 | ❌ 不提交（.gitignore） |
+
+**设计原因：**
+- 模板文件提供配置参数示例，方便新用户快速上手
+- 实际配置文件不提交到 Git，避免敏感信息（服务器地址、序列号等）泄露
+- 每个环境（开发、测试、生产）可以使用不同的配置，互不干扰
+
+### 3.2 配置文件位置
 
 ```
 MS500_Factory_P4/
-└── as_ms500_config.json
+├── as_ms500_config.json.template  # 配置模板（提交到 Git）
+└── as_ms500_config.json          # 实际配置（不提交到 Git）
 ```
 
-### 3.2 配置文件格式
+### 3.3 配置文件格式
 
 ```json
 {
@@ -509,9 +541,9 @@ MS500_Factory_P4/
 }
 ```
 
-### 3.3 配置参数说明
+### 3.4 配置参数说明
 
-#### 3.3.1 server_url（服务器地址）
+#### 3.4.1 server_url（服务器地址）
 
 **说明：** 设备管理服务器的 URL 地址
 
@@ -527,7 +559,7 @@ MS500_Factory_P4/
 - 端口号通常为 `8000`
 - 确保服务器可访问
 
-#### 3.3.2 c_sn（相机序列号）
+#### 3.4.2 c_sn（相机序列号）
 
 **说明：** 相机的唯一序列号，用于服务器注册
 
@@ -543,7 +575,7 @@ MS500_Factory_P4/
 - 每台设备烧录前需要修改此参数
 - 建议使用流水号管理（如：0001、0002、0003...）
 
-#### 3.3.3 u_sn（单元序列号）
+#### 3.4.3 u_sn（单元序列号）
 
 **说明：** 单元的唯一序列号，用于服务器注册
 
@@ -559,7 +591,7 @@ MS500_Factory_P4/
 - 通常与 `c_sn` 的编号保持一致
 - 用于生成设备密码（`MS` + MD5(u_sn)[:6] + `!`）
 
-#### 3.3.4 PORT（串口号）
+#### 3.4.4 PORT（串口号）
 
 **说明：** 设备连接的串口号
 
@@ -593,7 +625,7 @@ ls /dev/ttyUSB*
 ls /dev/ttyACM*
 ```
 
-#### 3.3.5 BIN_TYPE（固件类型）
+#### 3.4.5 BIN_TYPE（固件类型）
 
 **说明：** 指定要烧录的固件类型，对应 `as_flash_firmware/bin_type/` 目录下的子目录名
 
@@ -619,7 +651,7 @@ as_flash_firmware/bin_type/
     └── ...
 ```
 
-#### 3.3.6 MODEL_TYPE（模型类型）
+#### 3.4.6 MODEL_TYPE（模型类型）
 
 **说明：** 指定要烧录的 AI 模型类型，对应 `as_model_conversion/type_model/` 目录下的子目录名
 
@@ -644,7 +676,7 @@ as_model_conversion/type_model/
     └── network_info.txt
 ```
 
-### 3.4 配置修改示例
+### 3.5 配置修改示例
 
 #### 示例 1: 修改串口号
 
@@ -712,7 +744,7 @@ as_model_conversion/type_model/
 }
 ```
 
-### 3.5 配置验证
+### 3.6 配置验证
 
 修改配置后，可以运行以下命令验证配置是否正确：
 
@@ -735,7 +767,7 @@ u_url:       127.0.0.1
 ------------------------------------------------------------
 ```
 
-### 3.6 配置文件最佳实践
+### 3.7 配置文件最佳实践
 
 #### 1. 序列号管理
 

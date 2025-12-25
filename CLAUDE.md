@@ -34,14 +34,20 @@ MS500 工厂生产系统 - ESP32-P4 摄像头设备的工厂生产工具，处�
 ### 模块设计
 
 ```
-main.py                  # 主流程：参数注册 → 固件烧录 → 模型烧录
-├─ as_factory_info.py    # 设备注册和 NVS 烧录
-├─ as_factory_firmware.py # 固件烧录
-└─ as_factory_model.py   # AI 模型烧录
+main.py                      # 主流程：参数注册 → 固件烧录 → 模型烧录
+├─ as_factory_info.py        # 设备注册和 NVS 烧录
+├─ as_factory_firmware.py    # 固件烧录
+└─ as_factory_model.py       # AI 模型烧录
 
-as_ms500_config.py       # 统一配置管理
-as_ms500_config.json     # 配置文件（PORT、BIN_TYPE、MODEL_TYPE、序列号等）
+as_ms500_config.py           # 统一配置管理
+as_ms500_config.json         # 配置文件（PORT、BIN_TYPE、MODEL_TYPE、序列号等）
+as_ms500_config.json.template # 配置模板文件（提交到 Git，不包含敏感信息）
 ```
+
+**配置文件说明：**
+- `as_ms500_config.json.template` - 配置模板文件，提交到 Git 仓库，包含配置示例
+- `as_ms500_config.json` - 实际配置文件，**不提交到 Git**（.gitignore），包含真实参数
+- 首次使用需要从模板复制：`copy as_ms500_config.json.template as_ms500_config.json`
 
 ### ESP 组件系统
 
