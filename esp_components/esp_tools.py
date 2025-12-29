@@ -31,8 +31,8 @@ ESPTOOL = [str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"), "-m", "esptoo
 NVS_GEN_MODULE = "esp_idf_nvs_partition_gen"
 
 # 默认串口波特率配置
-BAUD_RATE = "460800"
-# BAUD_RATE = "115200"
+# BAUD_RATE = "460800"
+BAUD_RATE = "115200"
 
 
 # ========== 工具获取函数 ==========

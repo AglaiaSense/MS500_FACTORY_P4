@@ -202,9 +202,16 @@ def main(port, bin_type):
         existing_info = check_nvs_data()
 
         if existing_info:
-            response = input("\n是否继续重新注册? (y/n): ")
-            if response.lower() != "y":
-                print("操作已取消")
+            # 检查 g_camera_id 是否有效
+            if existing_info.get("g_camera_id_valid"):
+                print("\n✓ 设备已注册且 g_camera_id 有效")
+                response = input("\n是否继续重新注册? (y/n): ")
+                if response.lower() != "y":
+                    print("操作已取消")
+                    return
+            else:
+                # g_camera_id 无效，需要重新注册
+                print("\n⚠ 设备已有 NVS 数据，但 g_camera_id 无效，需要先启动MS500设备进行camera_id的生成")
                 return
 
         # 步骤3：向服务器注册设备

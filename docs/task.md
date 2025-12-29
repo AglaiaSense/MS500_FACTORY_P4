@@ -1,1 +1,2 @@
-- [✓] **优化OPERATION_MANUAL.md和README.md的文档说明,添加as_ms500_config.json.template配置模板文件使用说明** (2025-12-25)
+- [✓] **在 as_factory_model.py 中添加 g_camera_id 检查，确保模型烧录前设备已完成注册** (2025-12-29)
+- [✓] **优化 g_camera_id 检测机制：在 check_nvs_data 中集成检测逻辑，as_factory_info.py 和 as_factory_model.py 均使用统一检测** (2025-12-29)

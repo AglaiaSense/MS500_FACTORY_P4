@@ -287,6 +287,7 @@ def check_nvs_data():
 
     if nvs_info:
         # 检查并修正 g_camera_id 的前缀
+        g_camera_id_valid = False
         if "g_camera_id" in nvs_info:
             original_id = nvs_info["g_camera_id"]
             # 如果 g_camera_id 长度为 32 字符且前 4 位不是 "100B"，则替换为 "100B"
@@ -297,14 +298,25 @@ def check_nvs_data():
                 print(f"    原始值: {original_id}")
                 print(f"    修正值: {corrected_id}")
 
+            # 验证 g_camera_id 是否有效（非空且长度为32字符）
+            if nvs_info["g_camera_id"] and len(nvs_info["g_camera_id"]) == 32:
+                g_camera_id_valid = True
+
         print("\n  设备注册信息:")
         for key, value in nvs_info.items():
             print(f"    {key}: {value}")
 
-        return {"has_data": True, "decoded": True, "info": nvs_info}
+        # 检查 g_camera_id 是否存在
+        if not g_camera_id_valid:
+            print("\n" + "!" * 60)
+            print("  警告: g_camera_id 不存在或格式无效")
+            print("!" * 60)
+            return {"has_data": True, "decoded": True, "info": nvs_info, "g_camera_id_valid": False}
+
+        return {"has_data": True, "decoded": True, "info": nvs_info, "g_camera_id_valid": True}
     else:
         print("  警告: 未提取到有效数据")
-        return {"has_data": True, "decoded": False}
+        return {"has_data": True, "decoded": False, "g_camera_id_valid": False}
 
 
 #------------------  获取 NVS 原始 BIN 文件路径  ------------------
